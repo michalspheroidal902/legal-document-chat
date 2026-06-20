@@ -1,0 +1,11 @@
+# M2 custom pipeline — pinned deps (owner-gated, one step at a time).
+# M2-1 installs PyMuPDF ONLY. Docling/Tesseract/Qdrant/LlamaIndex/FastAPI are
+# deferred to M2-2..M2-7 and must NOT be added here without an approving task.
+pymupdf==1.27.2.3
+# M2-2: Docling for document-structure (section header) detection. Born-digital
+# corpus -> OCR disabled. Pulls a Torch-based layout stack as transitive deps and
+# downloads its own layout models on first run (one-time, no document content).
+docling==2.104.0
+# M2-3: LanceDB embedded vector store (pip-only, no Docker/server, D-34). Vectors
+# come from the system Ollama bge-m3 (D-11) over loopback — not a new model dep.
+lancedb==0.33.0

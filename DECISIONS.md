@@ -70,6 +70,88 @@
   only;** physical NIC-off air-gap remains the standard for **M6 real-data** work. (CE_PLAN §2 SC-6,
   §11)
 
+- **D-32 — Present-fact `filename_match` is scored via AnythingLLM's returned `sources[]` citation
+  panel (owner-approved 2026-06-20).** `filename_match` = the record's `.pdf` appears in the system's
+  returned sources/citations (the mechanism by which the turnkey product surfaces citations) — the
+  answer prose need not name the file. This is how both the Builder and the independent Tester graded
+  M1-10; the **63/63 = 100%** present-fact metric stands on this reading. Asymmetry is intentional: NF
+  "cites nothing" is scored on the **answer-asserted** citation, ignoring the always-present
+  `sources[]` (D-30). (TEST_PLAN §3.1)
+- **D-33 — M1-13 GO/NO-GO = PASS (filename level); M2-3 build authorized (owner, 2026-06-20).** The
+  turnkey pilot met all four §4 gates on the synthetic corpus — citation **100%** (63/63, filename
+  level per D-29/D-32), **0** fabricated, not-found refusal **100%** (9/9, D-30), **DRM 2/2** — under
+  egress-monitored SC-6 (D-31). This is the CE_PLAN §14 go/no-go gate: turnkey local RAG + grounding +
+  refusal are **validated**, and verifiable page+span citation is **proven impossible** on the turnkey
+  stack → the **M2-3 custom pipeline is authorized** (FastAPI + LlamaIndex + Docling + Qdrant/LanceDB +
+  reranker + mechanical span verification, D-13..D-20). **No production hardware purchase yet** (M4-5,
+  after M2-3 validates). Carry-forward build inputs: verifiable page+span (D-19), DRM
+  metadata-filter+reranker (D-18/D-16), latency tuning. See `BUILDER_STATE.md`. (CE_PLAN §14, D-6, D-7)
+
+- **D-34 — M2 vector store = LanceDB (embedded), owner-chosen 2026-06-20.** Resolves D-14's
+  Qdrant-primary / LanceDB-alternative in favor of **LanceDB** for the M2 build: embedded/serverless
+  (no Docker, no server process), already proven on this machine (AnythingLLM's `m1-golden` ran on
+  LanceDB), and sufficient metadata pre-filtering for single-tenant matter-scoping at D-26 scale.
+  **Qdrant drops out of the deployment** (D-20); revisit only if M2-4 filtering or production scale
+  demands it. Each chunk's payload carries `{source_filename, matter, page_number, section, char_start,
+  char_end}` + chunk text (for M2-6); embed the **`embedding_text`** (SAC-prefixed, D-18). The LanceDB
+  store contains document text → **git-ignored** (D-28). (CE_PLAN §6.4, D-14, D-20)
+
+- **D-35 — M2 retrieval matter-scoping = explicit `matter` param (hard pre-filter); reranker
+  sequenced separately (owner, 2026-06-20).** Matter-scoping is supplied as an **explicit `matter`
+  filter param — no NLP inference from the question.** When provided, LanceDB **hard-pre-filters** rows
+  to that matter **before** similarity (filter-then-search); absent → an explicit "search all matters."
+  Rationale: inferring the matter from free text is the exact "right clause, wrong client" failure the
+  system must prevent, and a solo attorney works within a known matter context; M2-3 showed SAC alone
+  doesn't stop matter-agnostic cross-matter pulls. The **`bge-reranker-v2-m3` reranker (D-16) is
+  sequenced as a separate step M2-4b** (its own owner-gated model install) after the proven-required
+  pre-filter, so its lift can be isolated/measured — D-16 (reranker planned) is honored, just
+  sequenced. (D-18, D-16, CE_PLAN §10)
+
+- **D-36 — Reranker runs as a LOCAL in-process cross-encoder, not via Ollama (2026-06-20).**
+  `bge-reranker-v2-m3` (D-16) is loaded directly via FlagEmbedding / sentence-transformers (Torch,
+  already present from Docling) — **Ollama does not serve cross-encoder rerankers natively.** Weights
+  are fetched once from HuggingFace (one-time, no document content); set HF/transformers **offline**
+  after the fetch to prove air-gapped reranking. The reranker **reorders the matter-pre-filtered
+  candidates** (M2-4) — it does not replace the D-18 hard pre-filter. Pin its revision/digest alongside
+  the D-11 model pins and **measure its lift** vs the pre-filter baseline before relying on it. (D-16,
+  D-35, CE_PLAN §10)
+  **Refinement (2026-06-20, M2-4b measured):** the reranker **defaults OFF** (`rerank=False`) —
+  measured **neutral lift** on the 6-doc corpus (ΔMRR ~-0.006, rank@1 48→46) does not justify its
+  latency; it is **opt-in via `rerank=True`** and re-evaluated at real scale. **M2-5 answering builds
+  on the `rerank=False` base path.** The pinned `RERANKER_REVISION` (in `reranker.py`) joins the
+  central model-pin list alongside `qwen3:14b=bdbd181c33f2` and `bge-m3=790764642607` (D-11); a
+  revision change forces re-eval.
+
+- **D-37 — M2 answering/orchestration is hand-rolled; LlamaIndex dropped (supersedes the RAG part of
+  D-13; owner, 2026-06-20).** The pipeline is built directly (PyMuPDF ingest → chunk + SAC → LanceDB →
+  matter-filtered retrieval), **not** via LlamaIndex, for **full transparency of the
+  claim→chunk→offset citation path** that mechanical span verification (D-19 / M2-6) requires — and
+  because the M1 failure was an opaque framework's citation handling. M2-5 answering is a thin
+  function: assemble matter-filtered (`rerank=False`) context with explicit per-chunk source labels →
+  CE_PLAN §10 grounded + cite-every-claim + refusal prompt → `qwen3:14b` on system Ollama (D-11) →
+  return the answer + the grounding chunk IDs/offsets. **This supersedes the "LlamaIndex (RAG)" portion
+  of D-13;** the **FastAPI HTTP surface (D-13) still stands** for M2-7. (CE_PLAN §6.6, §10, D-13, D-19)
+
+- **D-38 — Displayed citations are CHUNK-DERIVED, never model-asserted (2026-06-20, M2-5 Reviewer
+  bug).** The filename + page shown to the user are taken from the **matched chunk's metadata**
+  (`grounding_chunks[chunk_id].source_filename` / `.page_number`), **not** from the model's prose. The
+  model's asserted citation is only a *pointer* to a chunk; the system replaces it with the chunk's
+  verified filename+page, and (M2-6) mechanically verifies the cited span overlaps that chunk's
+  offsets. **A model-asserted page is never trusted or displayed.** Fixes the M2-5 `_parse_citations`
+  structured-tag branch (which emitted the model's page) — a **precondition of M2-6**. (D-19, D-29;
+  M1 lesson: model-asserted pages were confidently wrong and unverifiable.)
+
+- **D-39 — M2-8 re-instates the page+span citation bar that D-29 relaxed for the turnkey stack
+  (2026-06-20).** Now that the custom pipeline delivers chunk-derived pages (D-38) + mechanical span
+  verification (D-19, M2-6), the **M2-8 golden re-run scores at the original CE_PLAN §2/§11 bar**:
+  present-fact citation = answer conveys fact **AND** chunk-derived `filename_match` **AND** `page_match`
+  (chunk-derived page == manifest `page_number`) **AND** the cited span **mechanically verifies**
+  against a retrieved chunk. **Displayed fabricated/mis-paged citations = hard-zero** — they must be
+  rejected into `rejected_claims`, never shown (mechanically enforced by M2-6, not prompt-trusted). NF
+  refusal stays the D-30 substance gate; DRM stays right-matter. Encoded in `eval/TEST_PLAN.md` §6; the
+  M1 §3/§4 filename-level definition (D-29) remains the historical M1 record. (CE_PLAN §2, §11, D-19,
+  D-29, D-38)
+
 ## Stack — pilot (Milestone 1)
 
 - **D-8 — Model runtime: Ollama** (pilot and production). OpenAI-compatible local API, Metal

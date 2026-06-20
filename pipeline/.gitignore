@@ -1,0 +1,7 @@
+# Pipeline-local venv (the repo root .gitignore already ignores .venv/, this is
+# belt-and-suspenders so the pipeline stays self-contained).
+.venv/
+__pycache__/
+*.pyc
+# LanceDB store — contains document text + vectors (D-28, never committed).
+.lancedb/

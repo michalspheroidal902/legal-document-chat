@@ -46,30 +46,29 @@ These are boundaries, not backlog items. Do not violate them, and do not build f
    not support an answer, the system says **"I could not find this in the documents."**
 7. **Secrets are never committed.** `.env` is git-ignored; only `.env.example` with placeholders.
 
-## Current milestone — Milestone 1 ONLY
+## Current milestone — Milestone 2-3 (custom citation-grade pipeline)
 
-We are executing **Milestone 1 only**. Do not work ahead of it.
+**Milestone 1 PASSED** (2026-06-20, go/no-go = PASS at filename level — see `DECISIONS.md` **D-33**).
+The turnkey pilot proved grounded answering + filename grounding (100%) + not-found refusal (100%) +
+DRM right-matter, and proved that **verifiable page+span citation is impossible on the turnkey stack**
+— which authorizes the custom build. **We are now executing Milestone 2-3.** See `TASKS_M2.md` for the
+M2 checklist and `BUILDER_STATE.md` for the M1 handoff/constraints.
 
-**Milestone 1 goal:** stand up a turnkey local pilot and prove citation accuracy before any
-custom code or hardware purchase.
+**Milestone 2-3 goal:** build the custom citation-grade pipeline that delivers **verifiable
+page+span citations** the turnkey stack could not — FastAPI + LlamaIndex + Docling/PyMuPDF ingestion
+(real page metadata) + Qdrant/LanceDB + metadata-filter + reranker + **mechanical span-level citation
+verification** (`DECISIONS.md` D-13..D-20). Re-measure against the existing `eval/` golden set at
+page+span level.
 
-- **Ollama + AnythingLLM** installed natively on this Mac (no Docker for the pilot).
-- Models pulled: **`qwen3:14b`** (chat) + **`bge-m3`** (embedding).
-- A small **sanitized corpus** loaded into AnythingLLM.
-- A **golden eval set of 50+ legal-style questions**, each mapped to a known source page.
-- Measure **citation accuracy** (correct answer + correct filename + page) and
-  **not-found refusal** (refuses every time the evidence is absent).
+**How we work in M2-3 (unchanged discipline):** each task is small, tested, and **owner-gated** —
+new installs/deps/config are approved one step at a time via the relay prompt, exactly as in M1.
 
-**Milestone 1 acceptance / go-no-go gate:** the turnkey stack answers golden questions with
-correct filename + page citations and refuses on not-found. This is the gate before building any
-custom code or buying hardware.
+### Still blocked (do NOT do yet)
 
-### Do NOT do yet (blocked until Milestone 1 passes)
-
-- **Do not scaffold the custom production pipeline** (FastAPI + LlamaIndex + Qdrant/LanceDB +
-  Docling + reranker + mechanical span verification). That is Milestones 2–3, after the gate.
-- Do not write application code for ingestion, retrieval, or answering.
-- Do not buy or spec production hardware.
+- **Do not buy or spec production hardware.** That is Milestones 4-5, after M2-3 validates on this
+  machine. (CE_PLAN D-21/D-22; no purchase on spec.)
+- **No real attorney/client documents.** Synthetic/public only until Milestone 6 (onsite, on
+  attorney hardware, after written approval). The hard safety rules above still govern.
 
 ## How to work in this repo
 

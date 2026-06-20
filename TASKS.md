@@ -154,13 +154,12 @@
       documents" on every not-found question (target: 0% hallucination). _Result 2026-06-20: **9/9 =
       100%** refusal; all assert no citation; `refusal_wording_exact = 9/9` (exact D-30 sentence).
       0% hallucination._
-- [ ] **M1-13 — Record the go/no-go decision.** Two findings: **(1) filename-level gate** (citation
-      accuracy ≥95% + 0 fabricated + 100% refusal + 100% DRM, per D-29/§4) — PASS = turnkey adequate
-      for grounded answers + refusal; FAIL = tune config/prompt and re-run. **(2) Established
-      structural finding:** verifiable page+span citation is impossible on the turnkey stack →
-      **the planned M2-3 custom build is justified** to obtain it (CE_PLAN §14 / D-7 / D-19). Record
-      both; the page/span gap is the primary reason to proceed to M2-3, not a reason to keep re-running
-      M1.
+- [x] **M1-13 — Record the go/no-go decision.** _Done 2026-06-20 (owner): **M1-13 = PASS at filename
+      level** → **M2-3 build authorized** (D-33). All four §4 gates met — citation 100% (63/63,
+      filename per D-29/D-32), 0 fabricated, refusal 100% (9/9, D-30), DRM 2/2 — under egress-monitored
+      SC-6 (D-31). Structural finding: verifiable page+span citation is impossible on the turnkey stack
+      → the primary justification to proceed to the M2-3 custom pipeline (D-13..D-20). No hardware
+      purchase yet (M4-5). **Milestone 1 COMPLETE.**_
       _Builder recommendation 2026-06-20 (PENDING Reviewer audit + Tester repro + owner sign-off — not
       yet checked off):_ **(1) filename-level gate → RECOMMENDED PASS** (citation 100% ≥95%, fabricated
       0, refusal 100%, DRM 100% — all four §4 gates met). **(2) page+span structurally impossible on

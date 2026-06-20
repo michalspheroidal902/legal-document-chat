@@ -7,15 +7,15 @@ _Last updated: 2026-06-20_
 
 ## Status
 
-**Milestone 1 in progress. Install + wiring chain COMPLETE (M1-1..M1-5); corpus embedded as paged
-PDFs (M1-7/M1-7c). M1-7b DONE: `m1-golden` persisted to QUERY mode, context raised to 32768
-(verified via `/api/ps`), §10 prompt active; validity probe passed — present facts answer with a
-matching filename citation, not-found questions refuse with the exact D-30 sentence (the M1-5
-"Blue." world-knowledge leak is FIXED). **M1-10 COMPLETE — full 72-question run done, egress-monitored
-(0 non-loopback, SC-6). Manual grades: citation 63/63=100%, fabricated 0, NF refusal 9/9=100%, DRM
-2/2=100% → Builder RECOMMENDS M1-13 PASS (pending Reviewer audit + Tester repro + owner sign-off).**
-Next: Reviewer audits the grading; then Tester re-runs a ~10-Q subset; then Planner records the M1-13
-go/no-go with the owner. ✅ RESOLVED (owner, D-29): M1-7c proved AnythingLLM 1.14.1's PDF parser flattens pages
+**🎉 MILESTONE 1 COMPLETE — M1-13 = PASS (filename level); M2-3 build AUTHORIZED (owner, 2026-06-20,
+D-33).** Full 72-question run done + independently reproduced, egress-monitored (0 non-loopback, SC-6,
+D-31). Final metrics: **citation 63/63 = 100%** (filename, D-29/D-32), **0 fabricated**, **NF refusal
+9/9 = 100%** (substance, D-30), **DRM 2/2**. The turnkey AnythingLLM+Ollama stack is validated for
+grounded local RAG + filename grounding + not-found refusal; verifiable **page+span** citation is
+proven impossible on it → reassigned to the now-authorized **M2-3 custom pipeline** (D-13..D-20). No
+hardware purchase yet (M4-5). **Next: M2-3 planning** (custom FastAPI + LlamaIndex + Docling +
+Qdrant/LanceDB + reranker + mechanical span verification) — see `BUILDER_STATE.md` §7 carry-forwards;
+M2 writes application code + needs new installs, each owner-gated. ✅ RESOLVED (owner, D-29): M1-7c proved AnythingLLM 1.14.1's PDF parser flattens pages
 (empty chunk metadata) → verifiable page-level citation is impossible on the turnkey stack. M1 is now
 scored at **filename level** (answer-correctness + filename grounding + DRM + refusal); **verifiable
 page+span citation is reassigned to M2-3** (Docling + mechanical span check, per D-19). The page-level
@@ -169,24 +169,22 @@ disable done; M1-10 air-gap is **egress-monitored** (D-31), not physical disconn
 
 ## Next task
 
-**Audit → repro → record M1-13 (owner sign-off).** M1-10 is complete with a Builder-recommended
-**PASS** (all four §4 gates met; SC-6 air-gap proven). Relay to close the gate:
-1. **Reviewer** — audit the manual grading in `eval/results/grades-2026-06-20-qwen3-14b.md` against
-   the raw `run-2026-06-20-qwen3-14b.jsonl`: re-check a sample of present-fact filename_match calls and
-   **all 9 NF** judgments vs the manifest; confirm **fabricated filenames = 0** and **DRM right-matter**;
-   confirm the egress log shows **zero non-loopback**; confirm grading was by reading (no gated
-   auto-scorer was written).
-2. **Tester** — independently re-run a random ~10-question subset (fresh sessionId, v1 query chat) to
-   confirm reproducibility + the loopback-only egress posture.
-3. **Planner** — record the **M1-13 go/no-go** with the owner: (a) filename-level gate PASS → turnkey
-   adequate for grounded answering + filename grounding + refusal; (b) verifiable **page+span citation
-   is reassigned to M2-3** (turnkey parser drops page metadata, D-29/D-19). Then bring the M2-3
-   build decision to the owner.
+**M2-8a — Normalization fix + targeted re-run → FINAL PASS.** Milestone 2-3 underway (`TASKS_M2.md`).
+**M2-8 = CONDITIONAL PASS (capability proven):** full-72 page+span run, egress-monitored (D-31) →
+**0 displayed fabrications** (hard-zero holds; verifier fails **conservatively**), **NF 9/9**, **DRM
+2/2**; **page+span 93.7% strict**, under the ≥95% gate **only** from verifier **false-rejects of
+truthful** answers using uncovered escapes (**F-014** `\"`, **F-016** `&quot;`). **Next (M2-8a, no new
+install):** extend the M2-6 verifier normalization to **`html.unescape` + strip backslash-escaped
+quotes** (confirmed to fix F-014/F-016 → ≥96.8%); apply the Reviewer's **F-042 alternate-page** note
+into TEST_PLAN §6 (added §6.5); **targeted re-run** of F-014/F-016/F-042 + any other entity/backslash
+false-rejects across the 72 → flip to **FINAL PASS ≥95%**; verifier must still fail conservatively
+(never false-accept a fabrication). Then **M2-7** (FastAPI loopback surface, D-13). **Carry-forward
+risk:** real-PDF section detection before M6.
 
-**Perf caveat for the owner:** per-question latency is high (mean ~19s, max ~78s total, qwen3
-"thinking"); first-token (<3s CE_PLAN target) was not separately instrumented. Worth a thinking-mode/
-latency tuning pass before any attorney demo (M4) — informational, not an M1 §4 gate.
-**Pinned digests (D-11):** `qwen3:14b=bdbd181c33f2`, `bge-m3=790764642607`.
+**Perf carry-forward (M2-3 / pre-M4 demo):** per-question latency was high (mean ~19s, max ~78s,
+qwen3 "thinking"); first-token (<3s CE_PLAN §2 target) not separately instrumented. Size a
+thinking-mode/latency tuning pass on the custom pipeline + production hardware. **Pinned digests
+(D-11):** `qwen3:14b=bdbd181c33f2`, `bge-m3=790764642607`.
 
 **⚠ Key go/no-go risk (M1-5 Tester flag — read before M1-10).** On the EMPTY `m1-golden` workspace a
 non-legal trivia prompt returned "Blue." **with a fabricated citation** ("Weather Conditions, p.3")

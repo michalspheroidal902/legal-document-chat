@@ -205,3 +205,49 @@ line in **`TASKS.md`** is checked off. The raw per-question outputs stay in the 
   plan.
 - **Synthetic/public data only.** No real attorney/client documents; human verification of every
   cited answer is mandatory (D-5). This plan does not authorize processing real data.
+
+## 6. M2-8 scoring — page+span bar (D-39; re-instates CE_PLAN §2/§11)
+
+§3/§4 above are the **M1 turnkey** rubric (filename-level per D-29). For the **M2-8** run on the custom
+pipeline, page+span is achievable (chunk-derived pages D-38 + mechanical span verification D-19/M2-6),
+so M2-8 scores at the **stricter original bar**. Same 72 golden questions; same egress-monitored
+air-gap (D-31); manual grading (auto-scorer still approval-gated, §5); raw → git-ignored
+`eval/results/run-<date>-m2.jsonl`.
+
+### 6.1 Present-fact (F-001 … F-063) — `citation_accurate_M2 = true` iff ALL:
+
+1. **`answer_conveys_fact`** — as §3.1.
+2. **`filename_match`** — a **chunk-derived** displayed citation's filename == manifest `filename`
+   (D-38 — never the model's asserted filename).
+3. **`page_match`** — that citation's **chunk-derived** page == manifest `page_number` (real page, now
+   available; D-38 — never the model's asserted page).
+4. **`span_verified`** — the cited claim's span **mechanically overlaps** the matched chunk's
+   `char_start..char_end` on its page text, under the normalization contract (**`html.unescape`
+   (decode HTML entities) + strip backslash-escaped quotes + collapse ws + `-\n`→`-`**; M2-8a) — i.e.
+   it survives `verify_answer` and is **not** in `rejected_claims`. The verifier **fails
+   conservatively**: a false-reject of a truthful span is a precision bug to fix, never a safety
+   failure; it must never false-**accept** a fabrication.
+
+### 6.2 Refusal (NF-001 … NF-009) — unchanged: the **D-30 substance gate** (§3.2). Target 100%.
+
+### 6.3 DRM (F-009 / F-025) — `citation_accurate_M2` **and** `drm_matter_correct` (§3.3). Target 100%.
+
+### 6.4 Thresholds & gate (M2-8)
+
+| Metric | Definition | Target |
+|--------|------------|--------|
+| **Page+span citation accuracy** | present facts with `citation_accurate_M2` ÷ 63 | **≥ 95%** |
+| **Displayed fabrications** | a fabricated/mis-paged citation **shown** (not in `rejected_claims`) | **0 (hard zero)** |
+| **Not-found refusal** | NF with `refusal_correct` ÷ 9 | **100%** |
+| **DRM resilience** | F-009/F-025 right matter ÷ 2 | **100%** |
+
+`rejected_claims` are the **safety mechanism**, not a failure — a fabricated/mis-paged span that M2-6
+**rejects** (never displays) is the system working correctly. A **displayed** fabrication/mis-page is a
+**blocking hard-zero** (CE_PLAN §11). Record the outcome + metrics in `RUN_STATE.md`/`TASKS_M2.md`.
+
+### 6.5 Alternate-page clarification (F-042)
+
+If a fact's `verbatim_span` legitimately appears on **more than one** page (a clause repeated or
+continued across pages), `page_match` is satisfied when the cited, **verified** span resolves to **any**
+page that genuinely contains it — not only the manifest's primary `page_number`. Apply the Reviewer's
+specific F-042 note when finalizing M2-8a; a true alternate-page location must not false-fail.
