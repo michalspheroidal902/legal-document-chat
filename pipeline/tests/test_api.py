@@ -105,7 +105,7 @@ class TestSafetyStructural(unittest.TestCase):
         app_paths = {p for p in paths if p and not p.startswith(("/openapi", "/docs", "/redoc"))}
         self.assertEqual(app_paths,
                          {"/", "/app", "/static/{asset:path}", "/health", "/answer",
-                          "/matters", "/source/{filename:path}"})
+                          "/matters", "/eval/matters", "/source/{filename:path}"})
 
     def test_no_mutating_http_methods_exposed(self):
         methods = set()

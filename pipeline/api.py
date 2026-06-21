@@ -38,6 +38,11 @@ _STATIC_MEDIA = {".js": "application/javascript", ".css": "text/css", ".html": "
 
 app = FastAPI(title="Legal Document Intelligence (M2-7)", docs_url=None, redoc_url=None)
 
+# App routers (the SAM-style UI surfaces). Loopback-only, cited-retrieval only.
+import routes_matters  # noqa: E402
+
+app.include_router(routes_matters.router)
+
 
 @app.get("/", response_class=HTMLResponse)
 def index():
@@ -74,10 +79,10 @@ def static_asset(asset: str):
     return FileResponse(target, media_type=_STATIC_MEDIA.get(target.suffix, "application/octet-stream"))
 
 
-@app.get("/matters")
-def matters():
-    """The store's matter allowlist (read-only) — populates the UI's matter selector
-    so it never drifts from what retrieve() will accept (D-35)."""
+@app.get("/eval/matters")
+def eval_matters():
+    """The EVAL store's matter allowlist (read-only) — used by the SC-5 demo page (/).
+    The app's own matters catalog is served at /matters by routes_matters."""
     return {"matters": known_matters()}
 
 

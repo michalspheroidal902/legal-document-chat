@@ -6,3 +6,5 @@ __pycache__/
 # LanceDB stores — contain document text + vectors (D-28, never committed).
 # Covers the live .lancedb (M2-8) and the T3 full store .lancedb_full.
 .lancedb*/
+# SQLite app catalog — durable UI state (D-28, never committed).
+.kb_catalog*.db

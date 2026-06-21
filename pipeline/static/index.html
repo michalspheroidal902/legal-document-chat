@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Legal Document Intelligence — demo</title>
+<style>
+  :root { --ink:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#1f5fa8; --bg:#fafafa; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); background:#fff; }
+  header h1 { margin:0; font-size:16px; font-weight:600; }
+  .synthetic { display:inline-block; margin-left:10px; font-size:11px; font-weight:600; letter-spacing:.04em; color:#8a5a00; background:#fff3d6; border:1px solid #f0d896; border-radius:4px; padding:2px 7px; vertical-align:middle; }
+  .wrap { display:grid; grid-template-columns: minmax(420px, 1fr) 1.2fr; gap:0; height: calc(100vh - 51px); }
+  .left { padding:20px; overflow:auto; border-right:1px solid var(--line); }
+  .right { background:#525659; display:flex; flex-direction:column; }
+  .right .empty { margin:auto; color:#cfcfcf; font-size:13px; }
+  iframe { border:0; width:100%; height:100%; background:#525659; }
+  form { display:flex; flex-direction:column; gap:10px; }
+  label { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; }
+  textarea { width:100%; min-height:74px; resize:vertical; padding:9px 11px; font:inherit; border:1px solid var(--line); border-radius:6px; }
+  select, button { font:inherit; padding:9px 11px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  button { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; gap:10px; align-items:flex-end; }
+  .row > div { flex:1; }
+  .answer { margin-top:22px; }
+  .answer h2 { font-size:12px; text-transform:uppercase; letter-spacing:.03em; color:var(--muted); margin:0 0 6px; }
+  .prose { white-space:pre-wrap; background:#fff; border:1px solid var(--line); border-radius:6px; padding:14px 16px; }
+  .refusal .prose { color:#7a2e2e; background:#fcf3f3; border-color:#eccaca; }
+  .sources { margin-top:18px; }
+  .cite { display:block; width:100%; text-align:left; margin:8px 0 0; background:#fff; border:1px solid var(--line); border-radius:6px; padding:10px 12px; cursor:pointer; color:var(--ink); }
+  .cite:hover { border-color:var(--accent); }
+  .cite .meta { font-size:12px; font-weight:600; color:var(--accent); }
+  .cite .span { display:block; margin-top:4px; color:#333; font-size:13px; }
+  .withheld { margin-top:14px; font-size:13px; color:#8a5a00; background:#fff8ec; border:1px solid #f0d896; border-radius:6px; padding:10px 12px; }
+  .hint { color:var(--muted); font-size:12px; margin-top:4px; }
+  .err { color:#a11; margin-top:14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Legal Document Intelligence<span class="synthetic">SYNTHETIC SAMPLE DOCS — NOT REAL DATA</span></h1>
+</header>
+<div class="wrap">
+  <div class="left">
+    <form id="ask">
+      <div>
+        <label for="q">Question</label>
+        <textarea id="q" placeholder="e.g. In the Nimbus-Pemberton MSA, what is the monthly service fee?"></textarea>
+      </div>
+      <div class="row">
+        <div>
+          <label for="matter">Matter</label>
+          <select id="matter"><option value="">All matters (search all)</option></select>
+        </div>
+        <button id="go" type="submit">Ask</button>
+      </div>
+      <div class="hint">Answers are grounded in the cited source and mechanically span-verified. Click a source to open the original at the cited page.</div>
+    </form>
+    <div id="out"></div>
+  </div>
+  <div class="right">
+    <div class="empty" id="viewerEmpty">The cited source opens here.</div>
+    <iframe id="viewer" style="display:none"></iframe>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+// Populate the matter selector from the store allowlist (never drifts from retrieve()).
+fetch("/eval/matters").then(r => r.json()).then(d => {
+  for (const m of d.matters) {
+    const o = document.createElement("option");
+    o.value = m; o.textContent = m;
+    $("matter").appendChild(o);
+  }
+}).catch(() => {});
+
+// Strip the model's inline [..]-bracketed citation markers for readable prose; the
+// authoritative citations come from the structured `citations` array below.
+function cleanProse(text) {
+  return text.replace(/\[[^\]]*\]/g, "")
+             .replace(/[ \t]+([.,;:])/g, "$1")
+             .replace(/[ \t]{2,}/g, " ")
+             .replace(/\n{3,}/g, "\n\n")
+             .trim();
+}
+
+function openSource(filename, page) {
+  const v = $("viewer");
+  v.src = "/source/" + encodeURIComponent(filename) + "#page=" + page;
+  v.style.display = "block";
+  $("viewerEmpty").style.display = "none";
+}
+
+function render(body) {
+  const out = $("out");
+  out.innerHTML = "";
+  const cites = body.citations || [];
+  const refused = cites.length === 0;
+
+  const wrap = document.createElement("div");
+  wrap.className = "answer" + (refused ? " refusal" : "");
+  const h = document.createElement("h2");
+  h.textContent = refused ? "Result" : "Answer";
+  wrap.appendChild(h);
+  const p = document.createElement("div");
+  p.className = "prose";
+  p.textContent = cleanProse(body.answer_text || "");
+  wrap.appendChild(p);
+  out.appendChild(wrap);
+
+  if (cites.length) {
+    const s = document.createElement("div");
+    s.className = "sources";
+    const sh = document.createElement("h2");
+    sh.textContent = "Sources";
+    s.appendChild(sh);
+    for (const c of cites) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "cite";
+      b.innerHTML = `<span class="meta">${c.filename} — page ${c.page}</span>`;
+      if (c.span) {
+        const sp = document.createElement("span");
+        sp.className = "span";
+        sp.textContent = "“" + c.span + "”";
+        b.appendChild(sp);
+      }
+      b.onclick = () => openSource(c.filename, c.page);
+      s.appendChild(b);
+    }
+    out.appendChild(s);
+    // Auto-open the first cited source so the page jumps straight to the evidence.
+    openSource(cites[0].filename, cites[0].page);
+  }
+
+  const rejected = body.rejected_claims || [];
+  if (rejected.length) {
+    const w = document.createElement("div");
+    w.className = "withheld";
+    w.textContent = `${rejected.length} claim(s) were withheld — they failed mechanical span verification and were not shown (the verifier fails safe).`;
+    out.appendChild(w);
+  }
+}
+
+$("ask").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const question = $("q").value.trim();
+  if (!question) return;
+  const matter = $("matter").value || null;
+  $("go").disabled = true;
+  $("out").innerHTML = '<div class="hint">Thinking… (local model, ~5–15s)</div>';
+  try {
+    const r = await fetch("/answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, matter }),
+    });
+    if (r.status === 400) { $("out").innerHTML = '<div class="err">Unknown matter.</div>'; return; }
+    if (!r.ok) { $("out").innerHTML = '<div class="err">Request failed (' + r.status + ').</div>'; return; }
+    render(await r.json());
+  } catch (err) {
+    $("out").innerHTML = '<div class="err">' + err + '</div>';
+  } finally {
+    $("go").disabled = false;
+  }
+});
+</script>
+</body>
+</html>
