@@ -69,3 +69,6 @@ th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;le
   border-radius:6px;padding:0 6px;font-size:12px;cursor:pointer;text-decoration:none}
 .thumb{max-width:260px;border:1px solid var(--border);border-radius:8px;margin-top:6px;cursor:pointer;display:block}
 .thumb-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.privacy-badge{font-weight:700;padding:8px 14px;border-radius:999px;font-size:14px}
+.privacy-badge.ok{background:#e8f7ee;color:#0a7a33;border:1px solid #8fd6a8}
+.privacy-badge.warn{background:#fdeaea;color:var(--err);border:1px solid #f3b4b4}

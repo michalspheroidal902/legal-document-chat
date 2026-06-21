@@ -42,10 +42,12 @@ app = FastAPI(title="Legal Document Intelligence (M2-7)", docs_url=None, redoc_u
 import routes_chat  # noqa: E402
 import routes_kb  # noqa: E402
 import routes_matters  # noqa: E402
+import routes_settings  # noqa: E402
 
 app.include_router(routes_matters.router)
 app.include_router(routes_kb.router)
 app.include_router(routes_chat.router)
+app.include_router(routes_settings.router)
 
 
 @app.get("/", response_class=HTMLResponse)

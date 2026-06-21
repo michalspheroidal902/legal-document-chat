@@ -345,6 +345,34 @@
   }
   window.viewHooks.history = renderHistory;
 
+  // --- Settings view ---------------------------------------------------------
+  async function renderSettings() {
+    var inner = document.querySelector("#view-settings .view-inner");
+    var s = null;
+    try { s = await api("/settings/status"); } catch (e) { s = null; }
+    if (!s) { inner.innerHTML = "<h1>Settings</h1><p class='muted'>Status unavailable.</p>"; return; }
+    var local = s.egress === "loopback-only" && s.bind === "127.0.0.1";
+    inner.innerHTML =
+      "<h1>Settings</h1>" +
+      "<div class='panel' style='display:flex;align-items:center;gap:14px'>" +
+      "<div class='privacy-badge " + (local ? "ok" : "warn") + "'>" +
+      (local ? "100% local · 0 outbound" : "⚠ posture: " + esc(s.egress)) + "</div>" +
+      "<div class='muted'>Bind " + esc(s.bind) + " · Ollama " + esc(s.ollama) +
+      " · egress " + esc(s.egress) + "</div></div>" +
+      "<div class='panel'><table>" +
+      "<tr><th>Chat model</th><td>" + esc(s.models.chat) + "</td></tr>" +
+      "<tr><th>Embedding model</th><td>" + esc(s.models.embed) + "</td></tr>" +
+      "<tr><th>Ollama</th><td>" + esc(s.ollama) + " (loopback)</td></tr>" +
+      "<tr><th>Bind</th><td>" + esc(s.bind) + "</td></tr>" +
+      "<tr><th>KB documents</th><td>" + s.stores.kb_docs + "</td></tr>" +
+      "<tr><th>KB chunks</th><td>" + s.stores.kb_chunks + "</td></tr>" +
+      "<tr><th>Egress</th><td>" + esc(s.egress) + "</td></tr></table></div>" +
+      "<p class='muted'>Synthetic/public documents only. Backup/restore via deploy/restore.sh (SC-7).</p>";
+    var badge = document.getElementById("brand-badge");
+    if (badge) badge.textContent = local ? "100% local" : "review";
+  }
+  window.viewHooks.settings = renderSettings;
+
   // --- router ----------------------------------------------------------------
   function showView(name) {
     if (VIEWS.indexOf(name) === -1) return;
