@@ -159,6 +159,57 @@ git-ignored):_
 - [x] **G-SC7 — Redeploy-from-scripts proof (SC-7).** _🟢 `deploy/up|down|restore.sh` + README; live
       down→up→/answer→restore→down, compose-only, loopback-only, 0 egress, host Ollama bind unchanged._
 
+## M-ENRICH — capability workstream from the OSS evaluation (D-49, D-50, 2026-06-21)
+
+> Owner-directed adoption roadmap from the 9-repo deep dive (`docs/research/2026-06-21-oss-evaluation.md`).
+> Sequence **1→3→2**, transcripts a separate track. Same discipline: small, test-first, owner-gated,
+> baseline `.lancedb`/M2-8 byte-identical. Latency yellow (G-LAT) unaffected.
+
+- [ ] **T-TBL — Docling TableFormer tables, feature END-TO-END (D-50).** _▶ NEXT — comprehensive Builder
+      prompt emitted._ **Step-0 (close T-CLAUSE gaps, D-52):** add the doc_id post-filter regression test;
+      commit the T-CLAUSE feature + the pending governance/docs edits (coherent history). **Then** the
+      tables feature: TableFormer extraction (model fetch owner-approved, offline after, pin revision) →
+      markdown-per-table chunks w/ page(+bbox) → chunk/embed/index into a KB/scratch store → table-chunk
+      verbatim-span semantics preserving D-19/D-38 never-false-accept → answer a table-value question
+      span-verified → UI surfacing. **Offset-routing (D-51):** heavy Docling path for tabular/scanned docs
+      ONLY; never mix PyMuPDF/Docling offsets on one chunk. Test-first; baseline `.lancedb`/M2-8
+      byte-identical; loopback-only + PID-scoped real egress samples (D-47/D-52).
+      `extract_tables(pdf)` → per-table `{source_filename, page_number, bbox, markdown}` via Docling
+      `do_table_structure=True` (TableFormer, **one-time model fetch owner-approved**, offline after;
+      pin model revision). Markdown-table-per-table (D-50). Synthetic table-bearing doc authored
+      (fee-schedule/exhibit). **Test-first:** known cells land in the markdown on the correct page,
+      page-unique; born-digital text path **byte-identical** (tables not double-counted); baseline
+      `.lancedb`/M2-8 **untouched** (no re-embed/re-eval); zero non-loopback egress (socket-guard + live
+      `lsof`). Extraction only — NOT yet chunked/embedded/retrievable.
+- [x] **T-CLAUSE — Clause-extraction feature END-TO-END (#3, D-49/D-51, D-52).** _🟢 DONE 2026-06-21,
+      Tester-confirmed GREEN ×6 + Planner-verified (dirty tree confirmed). All 5 layers complete, no stubs;
+      never-false-accept held on every path incl. wrong-file doc_id post-filter; 159/159 suite; baseline
+      byte-identical; 0 non-loopback (PID-scoped). **2 yellows → T-TBL step-0:** add doc_id post-filter
+      regression test; commit the untracked files. KB matter slug = `pemberton-demo`._ Original scope:
+      (a) CUAD-informed clause taxonomy (tracked data, our own questions, provenance noted); (b)
+      `pipeline/clauses.py` `extract_clauses(matter, doc_id?)` driving the existing `answer()`+verifier per
+      clause — "found" ONLY with a span-verified citation (D-19/D-38), refused → advisory "potentially
+      missing" (non-citable, separated), prose-but-rejected → not-confirmed (never false-accept); (c)
+      loopback API route exposing it (no action routes); (d) a **Contract Review** panel in the SAM-style
+      UI reusing the existing cited-span highlight + page-thumbnail + escape-before-render assets (product
+      boundary: locate/summarize only, no advice/drafting/actions); (e) tests at every layer (unit + API +
+      UI). **No new install; pure data + orchestration + UI.** Test-first; baseline `.lancedb`/M2-8
+      byte-identical (read-only); loopback-only + **real** egress samples (D-47).
+- [ ] **T-GRID-1 — Tabular-review grid (#2, D-49).** Server-side `POST /grid {matter, doc_ids[],
+      questions[]}` fanning `answer()` across the matrix with **bounded** concurrency (not unbounded),
+      SSE-streamed; new static grid page reusing OUR span-verified highlight (never fuzzy). Columns =
+      T-CLAUSE-1 questions. Biggest build; after tables + clauses.
+- [ ] **T-TRANS (separate track) — Transcripts page:line + Q/A chunking.** Net-new, **brainstorm-first**
+      (page:line ripples into verifier + UI). Skeletons: RAGFlow `qa.py`, Docling `PageChunker`, PyMuPDF
+      per-line y-coords. Not bundled with the tables arc.
+- _**Small wins (fold into whatever we touch next, D-49/D-51):** `eyecite` case/statute-citation
+  extraction (retrieve-by-authority); kotaemon **logprob** answer-confidence (prefer over LLM-grader);
+  sentence-window retrieval; top-k×N-before-rerank recall fix (**hypothesis** for F-026 — measure);
+  **non-gating** fuzzy span-verify fallback (UI "probable/unverified" only, never enters verified set);
+  streaming-token SSE UX (perceived latency); Docling `OcrMac` / `-MPS` (Apple-Silicon OCR/ingestion
+  speedups). Real-PDF robustness (bankruptcy-parser line-geometry / font-band / checkbox-glyph + real
+  court PDF fixtures) folds into the M6-readiness track._
+
 ## Constraints (carry-forward from M1)
 
 - Local-only, **loopback-only**; no cloud; **synthetic/public docs only**, no real data (real data is M6).

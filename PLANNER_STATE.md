@@ -12,7 +12,24 @@ Record every decision into `DECISIONS.md`; keep `RUN_STATE.md` + `TASKS_M2.md` c
 install at its gate.
 
 ## Current position
-**✅ SAM-style local UI COMPLETE (D-48, Tester-confirmed + Planner-verified 2026-06-20).** All 7 tasks 🟢
+**▶ M-ENRICH workstream underway (OSS-evaluation roadmap, D-49/D-51).** Owner directed a 9-repo deep dive
+(`docs/research/2026-06-21-oss-evaluation.md`); an independent Tester cross-eval converged (D-51). Roadmap
+greenlit, sequenced **clause → tables → grid**, transcripts separate; all four threads in `TASKS_M2.md` →
+M-ENRICH. **Owner workflow shift (saved as `feedback-builder-comprehensive-prompts`):** Builder prompts are
+now **complete features end-to-end**, anti-laziness, "going slow OK" — Reviewer/Tester find gaps.
+- **✅ T-CLAUSE DONE (D-52, Tester GREEN ×6 + Planner-verified).** Contract Review clause checklist, 5
+  layers, no stubs; never-false-accept held on every path incl. wrong-file doc_id post-filter; 159/159;
+  baseline byte-identical; 0 non-loopback. 2 yellows (doc_id regression test + commit untracked) folded
+  into T-TBL step-0. KB matter slug = `pemberton-demo`; egress monitors must be PID-scoped (`lsof -a`).
+- **▶ T-TBL ACTIVE — comprehensive Builder prompt emitted.** Docling TableFormer tables end-to-end
+  (model fetch owner-approved; offset-routing D-51 — heavy Docling path for tabular/scanned only, never mix
+  PyMuPDF/Docling offsets). Step-0 closes the T-CLAUSE gaps + commits.
+- **Then:** T-GRID (review grid; columns = clause questions), T-TRANS (transcripts, brainstorm-first,
+  separate track), plus small wins (eyecite, logprob confidence, non-gating fuzzy fallback, OcrMac/MPS).
+- **Owner-gated, untouched:** M4-5 hardware (no purchase on spec), M6 real data (written approval); open
+  G-LAT `<3s` latency yellow (unaffected by M-ENRICH).
+
+### (Earlier) ✅ SAM-style local UI COMPLETE (D-48, Tester-confirmed + Planner-verified 2026-06-20). All 7 tasks 🟢
 (commits `77a3b88`→`0e7abdb`); eval stores + M2-8 byte-identical; 0 non-loopback; product boundary held.
 App runs at `http://127.0.0.1:8000/app`; tree clean (all committed). **Next = OWNER DIRECTION** (relay
 auto-starts nothing): complete CE_PLAN M4 (user-guide + demo script → attorney UAT) / more UI polish /

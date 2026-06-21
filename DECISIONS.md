@@ -328,6 +328,89 @@
   + demo script + attorney UAT) and does NOT authorize M4-5 hardware (D-21/D-22) or M6 real data. (CE_PLAN
   §14 M4; D-2, D-18, D-30, D-38, D-41)
 
+- **D-49 — OSS landscape evaluation (9 repos) → adoption roadmap (2026-06-21, owner-directed).** Deep
+  source-level dive (not READMEs) into kotaemon, ragflow, docling, superwise/Legal_Document_Analyzer_AI,
+  OssamaLouati/Legal-AI_Project, THEOLEX/legal_doc_processing, jamietso/Tabular_Review,
+  freelawproject/bankruptcy-parser, glamboyosa/lawyergpt — each cloned to `/tmp`, cross-referenced vs our
+  `pipeline/*.py`. Full note: **`docs/research/2026-06-21-oss-evaluation.md`**. **Headline:** we already
+  run a full Docling conversion and discard ~95% of it (keep only `section_header` strings) — its
+  TableFormer tables + per-element `ProvenanceItem` (page+bbox+charspan) are our biggest unused upgrade.
+  **Adopt roadmap (owner-greenlit sequencing 1→3→2, transcripts a separate track):** (1) Docling tables +
+  provenance; (3) clause-extraction panel (CUAD 41-clause taxonomy + legal 11-section "contract summary"
+  prompt, span-verified); (2) tabular-review grid (doc×question, server-side over `answer()`+verifier);
+  (4) transcripts page:line + Q/A chunking — net-new, brainstorm-first, **no repo solves it** (RAGFlow
+  `qa.py` + Docling `PageChunker` + PyMuPDF line-coords are only partial skeletons). **Confirmed our
+  moats — do NOT churn:** our mechanical span verifier beats every repo's grounding (RAGFlow `[ID:n]` no-
+  entailment; kotaemon/Tabular_Review fuzzy-regex would false-accept); our RRF hybrid > kotaemon's concat;
+  matter pre-filter + SAC + hand-rolling (no LlamaIndex/LangChain) all validated. **Skip:** GraphRAG, all
+  server vector stores (Qdrant/ES/Infinity/pgvector), cloud LLM/ingestion, dead deps (PyPDF2/Wand/
+  mlx_vlm). **Dep-cost flags:** HybridChunker→transformers+semchunk, CUAD→torch, spaCy auto-downloads
+  (vendor for air-gap). Latency yellow (G-LAT) is untouched by this — Docling-MPS helps *ingestion*
+  throughput, not first-token. (CE_PLAN §5–§10; D-15, D-18, D-19, D-34, D-36)
+
+- **D-50 — Workstream M-ENRICH authorized; first task = Docling TableFormer table ingestion (2026-06-21,
+  owner-approved).** Opens a post-M3 capability workstream (see `TASKS_M2.md` → M-ENRICH). **Owner gates
+  cleared:** (a) one-time local fetch of `docling-project/docling-models` (TableFormer) **approved** —
+  runs fully offline after, under the existing `DOCLING_ALLOW_MODEL_FETCH` gate; pin the model revision
+  (D-11 style — a change forces table re-index); (b) table representation = **one Markdown table per
+  table chunk**, carrying `page_number` (+ bbox provenance where available), large tables split with the
+  header row repeated. **Scope discipline (mirrors the G-SC2 OCR pattern): first Builder task is the
+  EXTRACTION layer only** (`extract_tables` → per-table `{source_filename, page_number, bbox, markdown}`
+  on a synthetic table-bearing doc), test-first, **baseline `.lancedb`/M2-8 artifacts byte-identical**
+  (no re-embed/re-eval), born-digital text path unchanged, loopback-only + egress-monitored. Chunk→embed→
+  index→answer integration is the **follow-up** task. **Verifier interaction (must be handled, not
+  weakened):** Docling `charspan` indexes Docling's own serialized text, NOT PyMuPDF page text — keep
+  PyMuPDF as the span-verifier offset source-of-truth; table chunks are a NEW chunk type whose verbatim-
+  span semantics the integration task must define so the conservative never-false-accept invariant (D-19/
+  D-38) still holds. (CE_PLAN §6.3, §8; D-11, D-15, D-19, D-28, D-31, D-38, D-49)
+
+- **D-51 — Tester independent cross-eval reconciled into the M-ENRICH plan (2026-06-21).** A second,
+  independent 9-repo deep dive (Tester tab, same protocol) **converged with D-49 on all majors** (Docling
+  under-use = top finding; tabular grid + transcripts = the two real new capabilities; our mechanical
+  span verifier ahead of every repo; legal repos mostly thin cloud demos; skip cloud/heavy-infra/
+  frameworks) — two independent passes, same conclusions. **Net-new adopted items:** (a) **`eyecite`**
+  (Free Law Project, pure-Python offline) — extract/normalize case+statute citations to structured
+  metadata → retrieve-by-authority (fills the structured-legal-field gap; D-49's agents missed it as an
+  FLP sibling lib); (b) Docling **`OcrMac`** native-Vision OCR (zero weights, offline, faster on Apple
+  Silicon) — STUDY; (c) **streaming-token SSE UX** — improves *perceived* latency (not first-token),
+  Tier-3 UI. **Architectural decision (offset-routing):** NEVER mix PyMuPDF and Docling char-offsets on
+  the same chunk (silently breaks span verification). **One canonical extractor per document** — PyMuPDF
+  fast path for clean born-digital text (latency), heavy Docling path only for tabular/scanned docs. This
+  governs T-TBL and sharpens D-50's verifier note. **Push-backs (NOT fully adopted):** (1) fuzzy
+  span-verify fallback (kotaemon difflib) stays **strictly NON-GATING** — may render a "probable source
+  (unverified)" UI highlight but **never** enters the verified set / flips a claim to displayed (else it
+  breaks D-19/D-38, our moat); (2) the retrieval recall fix (top-k×N before rerank) is a **hypothesis**
+  for F-026, measure don't assert — and the fuzzy fallback would NOT fix F-026 (recall miss, not
+  normalization drift); (3) prefer ~free **logprob** answer-confidence over an extra LLM-as-grader
+  round-trip. **OPEN OWNER FORK — sequencing:** owner pre-approved Docling-tables-first (D-50); Tester
+  credibly argues clause-checklist-first (cheapest, attorney-legible, prose clauses don't depend on
+  tables). Both arcs converge on the grid (clause questions = grid columns). Builder prompt **held**
+  pending owner's sequencing pick + plan approval. (CE_PLAN §5–§10; D-19, D-38, D-49, D-50)
+
+- **D-52 — T-CLAUSE (Contract Review clause checklist) COMPLETE end-to-end, Tester-confirmed +
+  Planner-verified (2026-06-21).** First M-ENRICH feature, built as **one comprehensive Builder pass**
+  (owner workflow, `feedback-builder-comprehensive-prompts`). **All five layers complete, no stubs**
+  (independently Tester-checked): (a) 20-clause CUAD-informed taxonomy (`pipeline/data/clause_taxonomy.json`,
+  our own phrasing, CC-BY provenance); (b) `pipeline/clauses.py` `extract_clauses(matter, doc_id?)` →
+  3-status classify (**found** only with a span-verified chunk-derived citation / **potentially_missing**
+  on D-30 refusal, non-citable / **not_confirmed** when prose returns but spans reject); (c) loopback API
+  (`routes_clauses.py`: `/clauses/taxonomy`, `/clauses/review`; 405 on action verbs, 400 on unknown
+  matter); (d) Contract Review UI panel (3 statuses, citation chips reusing `/kb/highlight`, distinct
+  missing badge, `esc()` XSS guard); (e) tests at every layer. **Tester verdict GREEN ×6:** fresh core
+  invocation (indemnification→found p3, arbitration→potentially_missing); live 20-clause review over
+  `.lancedb_kb` = 10 found / 10 missing / 0 not_confirmed reproduced 3×, every found row span-verified +
+  `/kb/highlight` PNG resolves; **never-false-accept held on every path incl. wrong-file doc_id
+  post-filter**; **0 non-loopback** (67 PID-scoped samples, `eval/results/egress-2026-06-21-tclause-tester.log`,
+  git-ignored); **159/159 suite OK**; **baseline `.lancedb`/`.lancedb_full`/`.lancedb_hyb` byte-identical**
+  (sha256 `13b242de…`/`0df0525c…`/`51e13b31…`, mtimes 2026-06-20, no re-embed/no M2-8 touch). **No new
+  install; product boundary held** (locate/summarize only). **Two yellows carried to T-TBL step-0 (not
+  blockers):** (1) add the `doc_id` post-filter **regression test** (logic verified live, no permanent
+  test); (2) **commit** the untracked T-CLAUSE files (recurring git-hygiene loose end, cf. D-47). **Process
+  notes:** the KB demo matter slug is **`pemberton-demo`** (NOT the eval store's "Pemberton Logistics
+  (Nimbus MSA)") — future review prompts must use the KB slug; and **egress monitors must be PID-scoped
+  (`lsof -a -p PID -iTCP`)** — a system-wide sample is not pipeline proof (reinforces D-47; the Tester
+  caught + corrected two invalid passes). (CE_PLAN §6/§10/§14; D-19, D-30, D-35, D-38, D-47, D-49, D-51)
+
 ## Stack — pilot (Milestone 1)
 
 - **D-8 — Model runtime: Ollama** (pilot and production). OpenAI-compatible local API, Metal

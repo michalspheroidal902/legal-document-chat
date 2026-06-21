@@ -182,6 +182,37 @@ disable done; M1-10 air-gap is **egress-monitored** (D-31), not physical disconn
 
 ## Next task
 
+**✅ T-CLAUSE DONE (D-52, Tester-confirmed GREEN ×6 + Planner-verified, 2026-06-21).** Contract Review
+clause checklist complete end-to-end (5 layers, no stubs): 20-clause taxonomy + `extract_clauses()`
+3-status classify + loopback API + UI panel + tests. Never-false-accept held on every path; 159/159 suite;
+baseline byte-identical; 0 non-loopback (PID-scoped). **2 yellows → folded into T-TBL step-0:** add doc_id
+post-filter regression test; commit untracked files. KB matter slug = `pemberton-demo`.
+
+**▶ ACTIVE: T-TBL — Docling TableFormer tables (M-ENRICH, D-50/D-51), comprehensive Builder prompt
+emitted.** Step-0 closes the 2 T-CLAUSE gaps + commits; then tables end-to-end (TableFormer extraction →
+markdown-per-table → chunk/embed/index → span-verified table answers → UI), offset-routing per D-51 (heavy
+Docling path for tabular/scanned only; never mix offsets). Model fetch already owner-approved. Test-first;
+baseline byte-identical; loopback-only + PID-scoped egress. _History below is the M-ENRICH kickoff +
+M1 record._
+
+---
+
+**(Prior) T-CLAUSE-1 — clause-extraction core + taxonomy (M-ENRICH, D-49/D-51, 2026-06-21).** Owner
+directed an OSS deep dive (9 repos → `docs/research/2026-06-21-oss-evaluation.md`); a second independent
+Tester cross-eval converged (D-51). Adoption roadmap greenlit; all four threads in `TASKS_M2.md` →
+M-ENRICH (T-CLAUSE → T-TBL → T-GRID; T-TRANS separate). **Owner picked clause-checklist FIRST** (cheapest,
+attorney-legible, prose clauses don't need tables; becomes the grid's columns). Tables (T-TBL-1, model
+fetch already approved) move to NEXT. **Comprehensive Builder prompt for T-CLAUSE emitted — one complete
+feature end-to-end** (owner workflow preference, `[[feedback-builder-comprehensive-prompts]]`): CUAD-informed
+clause taxonomy + `extract_clauses()` over the existing `answer()`+verifier (**span-verified per clause**,
+D-19/D-38; refused → advisory "potentially missing", non-citable) + loopback API route + a **Contract
+Review** panel in the SAM-style UI + tests at every layer. **No new install.** Test-first; baseline
+`.lancedb`/M2-8 byte-identical (read-only); loopback-only + **real** egress samples (D-47). Relay resumes
+Planner→Builder→Reviewer→Tester. Rationale: `DECISIONS.md` D-49/D-51. _Prior "owner direction" boundary
+(below) resolved into this roadmap._
+
+---
+
 **Milestone 2-3 substantively COMPLETE (D-42) — owner direction needed for the next milestone.**
 **✅ M2-7 = done** (D-41, Tester-confirmed 2026-06-20): thin FastAPI loopback surface (`pipeline/api.py`)
 over `answer()` — `POST /answer` + `GET /health`, bound `127.0.0.1:8000` only, no auth, no action

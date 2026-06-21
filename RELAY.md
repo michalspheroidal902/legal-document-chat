@@ -17,8 +17,10 @@ Tester prompt; Tester reports results back to the Planner).
 - **Planner (tab 1):** owns scope and sequencing. Reads `RUN_STATE.md` "Next task", surfaces genuine
   forks to the **owner** (never decides locked-decision changes alone), records decisions into
   `DECISIONS.md`, keeps `RUN_STATE.md`/`TASKS_M2.md` current, and writes the next **Builder prompt**
-  (small, tested, owner-gated, self-contained). Flags every new install at its gate.
-- **Builder (tab 2):** restores from `BUILDER_STATE.md`, executes exactly one task **test-first**,
+  (a **complete feature end-to-end** — data+core+API+UI+tests — owner-gated, self-contained, NOT a
+  micro-step; see `[[feedback-builder-comprehensive-prompts]]`). Flags every new install at its gate.
+- **Builder (tab 2):** restores from `BUILDER_STATE.md`, executes one complete task/feature **test-first**
+  — **do not be lazy, finish everything, going slow is OK** (Reviewer + Tester find the gaps) —
   reports (files / commands / verification / risks / scope), then emits the **Reviewer prompt**.
 - **Reviewer (tab 3):** audits the Builder's work against the task contract + `DECISIONS.md` +
   `eval/TEST_PLAN.md`; checks correctness, scope discipline, and safety (loopback-only, no real data,
