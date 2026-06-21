@@ -46,6 +46,13 @@ def chat(body: ChatRequest):
         # matter has no indexed chunks yet (empty KB) -> D-30 refusal, no tool/web call
         res = _refusal_result()
 
+    # Enrich each chunk-derived citation with its catalog doc_id so the UI can request
+    # the page thumbnail + cited-span highlight. doc_id is looked up by (matter, filename)
+    # — the displayed page/span stay chunk-derived (D-38); we add no model-asserted data.
+    by_name = {d["filename"]: d["id"] for d in catalog.list_documents(body.matter)}
+    for c in res["citations"]:
+        c["doc_id"] = by_name.get(c["filename"])
+
     catalog.add_message(thread_id, "assistant", res["answer_text"],
                         json.dumps(res["citations"]))
     catalog.touch_thread(thread_id)

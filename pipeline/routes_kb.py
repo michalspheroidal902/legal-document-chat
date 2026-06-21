@@ -10,10 +10,11 @@ structurally locked to documents/kb/ — it can never unlink a path outside that
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 import catalog
 import kb_ingest
+import pdf_view
 from embed_store import delete_doc
 
 router = APIRouter()
@@ -93,6 +94,36 @@ def source(doc_id: int):
     if not _within_kb(stored) or not stored.is_file():  # path-locked to documents/kb/
         raise HTTPException(status_code=404, detail="not found")
     return FileResponse(stored, media_type=_MEDIA.get(stored.suffix.lower(), "application/octet-stream"))
+
+
+def _managed_pdf(doc_id):
+    """A managed PDF inside documents/kb/, or None. Path-locked + must be a .pdf."""
+    row = catalog.get_document(doc_id)
+    if not row:
+        return None
+    stored = Path(row["stored_path"])
+    if not _within_kb(stored) or stored.suffix.lower() != ".pdf" or not stored.is_file():
+        return None
+    return stored
+
+
+@router.get("/kb/thumb/{doc_id}")
+def thumb(doc_id: int, page: int = 1):
+    """A retrieved page rendered to a PNG thumbnail (path-locked to documents/kb/)."""
+    target = _managed_pdf(doc_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="not found")
+    return Response(pdf_view.render_page_png(target, page), media_type="image/png")
+
+
+@router.get("/kb/highlight/{doc_id}")
+def highlight(doc_id: int, page: int = 1, span: str = ""):
+    """The retrieved page with the cited span highlighted. ``span`` is text passed to
+    search_for (never interpolated into a path); the file is rendered read-only."""
+    target = _managed_pdf(doc_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="not found")
+    return Response(pdf_view.highlight_span_png(target, page, span), media_type="image/png")
 
 
 @router.delete("/kb/documents/{doc_id}")

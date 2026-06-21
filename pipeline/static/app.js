@@ -181,14 +181,30 @@
   // --- Chat view -------------------------------------------------------------
   // renderAnswerHtml(body) -> HTML string for an assistant turn. Basic here; Task 6
   // upgrades it to markdown + inline source chips. Always escapes model text first.
+  // Per verified citation, a card showing the cited PAGE with the exact span highlighted
+  // (Task 5). The image is /kb/highlight/<doc_id>?page=&span= — chunk-derived page+span,
+  // never model-asserted. Non-PDF docs 404 -> the <img> hides itself (onerror).
+  function citationThumb(c) {
+    if (c.doc_id == null) return "";
+    var url = "/kb/highlight/" + encodeURIComponent(c.doc_id) +
+      "?page=" + encodeURIComponent(c.page) + "&span=" + encodeURIComponent(c.span || "");
+    return "<a href='" + url + "' target='_blank' title='Open " + esc(c.filename) +
+      " p." + esc(c.page) + " with the cited span highlighted'>" +
+      "<img class='thumb' src='" + url + "' alt='cited page' onerror=\"this.style.display='none'\"></a>";
+  }
+
   window.renderAnswerHtml = window.renderAnswerHtml || function (body) {
     var text = esc(body.answer_text || "").replace(/\n/g, "<br>");
-    var sources = (body.citations || []).map(function (c) {
+    var cites = body.citations || [];
+    var thumbs = cites.map(citationThumb).join("");
+    var sources = cites.map(function (c) {
       return "<li>" + esc(c.filename) + " — p." + esc(c.page) + "</li>";
     }).join("");
     return "<div class='answer'>" + text + "</div>" +
+      (thumbs ? "<div class='thumb-row'>" + thumbs + "</div>" : "") +
       (sources ? "<div class='sources'><b>Sources</b><ul>" + sources + "</ul></div>" : "");
   };
+  window.citationThumb = citationThumb;
 
   function appendMsg(role, html) {
     var box = document.getElementById("chat-messages");
