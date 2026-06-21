@@ -193,14 +193,62 @@
       "<img class='thumb' src='" + url + "' alt='cited page' onerror=\"this.style.display='none'\"></a>";
   }
 
-  window.renderAnswerHtml = window.renderAnswerHtml || function (body) {
-    var text = esc(body.answer_text || "").replace(/\n/g, "<br>");
+  // Minimal LOCAL markdown (no CDN lib). Operates on already-escaped text, so injected
+  // chip/format HTML is the only markup that reaches innerHTML (XSS guard).
+  function mdInline(s) { return s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>"); }
+  function md(text) {
+    var out = [], list = null, para = [];
+    function flushPara() { if (para.length) { out.push("<p>" + mdInline(para.join(" ")) + "</p>"); para = []; } }
+    function closeList() { if (list) { out.push("</" + list + ">"); list = null; } }
+    text.split("\n").forEach(function (ln) {
+      var t = ln.trim();
+      if (/^###\s+/.test(t)) { flushPara(); closeList(); out.push("<h4>" + mdInline(t.replace(/^###\s+/, "")) + "</h4>"); }
+      else if (/^##\s+/.test(t)) { flushPara(); closeList(); out.push("<h3>" + mdInline(t.replace(/^##\s+/, "")) + "</h3>"); }
+      else if (/^[-*]\s+/.test(t)) { flushPara(); if (list !== "ul") { closeList(); out.push("<ul>"); list = "ul"; } out.push("<li>" + mdInline(t.replace(/^[-*]\s+/, "")) + "</li>"); }
+      else if (/^\d+\.\s+/.test(t)) { flushPara(); if (list !== "ol") { closeList(); out.push("<ol>"); list = "ol"; } out.push("<li>" + mdInline(t.replace(/^\d+\.\s+/, "")) + "</li>"); }
+      else if (t === "") { flushPara(); closeList(); }
+      else { closeList(); para.push(t); }
+    });
+    flushPara(); closeList();
+    return out.join("");
+  }
+
+  function highlightUrl(c) {
+    return "/kb/highlight/" + encodeURIComponent(c.doc_id) +
+      "?page=" + encodeURIComponent(c.page) + "&span=" + encodeURIComponent(c.span || "");
+  }
+
+  // Replace the model's verbose inline [document: X, page: N, ...] tags with compact
+  // clickable source chips wired to the verified citation's highlight. Unmatched tags
+  // (no verified citation) are dropped — we never surface a model-asserted page.
+  function injectChips(escapedText, cites) {
+    return escapedText.replace(/\[document:[^\]]*\]/g, function (tag) {
+      var m = tag.match(/document:\s*([^,]+?)\s*,\s*page:\s*(\d+)/i);
+      if (!m) return "";
+      var fn = m[1].trim(), pg = m[2];
+      for (var i = 0; i < cites.length; i++) {
+        if (cites[i].filename === fn && String(cites[i].page) === pg) {
+          var c = cites[i];
+          if (c.doc_id == null) return " <span class='src-chip'>[" + (i + 1) + "]</span>";
+          return " <a class='src-chip' target='_blank' href='" + highlightUrl(c) +
+            "' title='" + esc(fn) + " p." + esc(pg) + "'>[" + (i + 1) + "]</a>";
+        }
+      }
+      return "";
+    });
+  }
+
+  window.renderAnswerHtml = function (body) {
     var cites = body.citations || [];
+    var safe = injectChips(esc(body.answer_text || ""), cites);
     var thumbs = cites.map(citationThumb).join("");
-    var sources = cites.map(function (c) {
-      return "<li>" + esc(c.filename) + " — p." + esc(c.page) + "</li>";
+    var sources = cites.map(function (c, i) {
+      var label = "[" + (i + 1) + "] " + esc(c.filename) + " — p." + esc(c.page);
+      return c.doc_id != null
+        ? "<li><a class='src-chip' target='_blank' href='" + highlightUrl(c) + "'>" + label + "</a></li>"
+        : "<li>" + label + "</li>";
     }).join("");
-    return "<div class='answer'>" + text + "</div>" +
+    return "<div class='answer'>" + md(safe) + "</div>" +
       (thumbs ? "<div class='thumb-row'>" + thumbs + "</div>" : "") +
       (sources ? "<div class='sources'><b>Sources</b><ul>" + sources + "</ul></div>" : "");
   };
