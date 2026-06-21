@@ -63,7 +63,22 @@ def ingest_document(doc_id, file_path, matter_slug, db_path, catalog_db=None):
     delete_doc(db_path, filename, matter_slug)
     add_chunks(chunks, db_path)
 
-    if not chunks and not needs_review:
+    # T-TBL: additively index any TABLES (Docling path), so fee schedules / damages
+    # matrices become span-verifiably citable. The prose path above is UNCHANGED; this
+    # runs only on table-bearing PDFs (cheap PyMuPDF pre-check, D-51 latency) and is
+    # best-effort — a table-pass failure never fails the prose ingest. Table chunks were
+    # cleared by delete_doc above, so re-ingest stays idempotent.
+    table_chunks = []
+    if file_path.suffix.lower() == ".pdf":
+        try:
+            import table_ingest
+            if table_ingest.has_tables(file_path):
+                table_chunks = table_ingest.ingest_tables(
+                    file_path, matter_slug, db_path, filename=filename)
+        except Exception:
+            table_chunks = []
+
+    if not chunks and not table_chunks and not needs_review:
         status, reason = "failed", "no extractable text"
     elif needs_review:
         status = "needs_review"
