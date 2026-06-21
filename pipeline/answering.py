@@ -15,8 +15,10 @@ offsets it needs ARE returned here), no reranker (rerank=False), no LlamaIndex
 
 import json
 import re
+import time
 import urllib.request
 
+from embed_store import ollama_url
 from retrieval import retrieve
 
 REFUSAL = "I could not find this in the documents."
@@ -73,7 +75,8 @@ def _norm(text):
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
-def _chat(messages, host="http://127.0.0.1:11434", model="qwen3:14b"):
+def _chat(messages, host=None, model="qwen3:14b"):
+    host = host or ollama_url()
     body = json.dumps({
         "model": model, "stream": False, "think": False,
         "messages": messages, "options": {"temperature": 0},
@@ -83,6 +86,43 @@ def _chat(messages, host="http://127.0.0.1:11434", model="qwen3:14b"):
     )
     with urllib.request.urlopen(req) as resp:
         return json.load(resp)["message"]["content"]
+
+
+def _chat_stream_ttft(messages, host=None, model="qwen3:14b", think=False,
+                      num_predict=None, keep_alive=None):
+    """Streaming variant used ONLY by the latency harness (G-LAT) — a side channel that
+    does NOT touch answer()/_chat (M2-7 parity). Streams the Ollama response and stamps
+    the wall-clock from request-send to the FIRST non-empty content token (TTFT).
+
+    Returns (text, ttft_s, total_s). Loopback Ollama only. Knobs: think=False (qwen3
+    no-think), bounded num_predict, warm keep_alive — documented latency levers."""
+    host = host or ollama_url()
+    body = {"model": model, "stream": True, "think": think,
+            "messages": messages, "options": {"temperature": 0}}
+    if num_predict is not None:
+        body["options"]["num_predict"] = num_predict
+    if keep_alive is not None:
+        body["keep_alive"] = keep_alive
+    req = urllib.request.Request(
+        f"{host}/api/chat", data=json.dumps(body).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+    t0 = time.perf_counter()
+    ttft, parts = None, []
+    with urllib.request.urlopen(req) as resp:
+        for line in resp:
+            if not line.strip():
+                continue
+            obj = json.loads(line)
+            chunk = obj.get("message", {}).get("content", "")
+            if chunk:
+                if ttft is None:
+                    ttft = time.perf_counter() - t0
+                parts.append(chunk)
+            if obj.get("done"):
+                break
+    total = time.perf_counter() - t0
+    return "".join(parts), (ttft if ttft is not None else total), total
 
 
 def _extract_and_resolve(answer_text, grounding):
