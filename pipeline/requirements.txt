@@ -9,3 +9,20 @@ docling==2.104.0
 # M2-3: LanceDB embedded vector store (pip-only, no Docker/server, D-34). Vectors
 # come from the system Ollama bge-m3 (D-11) over loopback — not a new model dep.
 lancedb==0.33.0
+# M2-7: FastAPI loopback HTTP surface over answer() (D-41, owner-approved). Plain
+# uvicorn (NOT uvicorn[standard]) to avoid extra C-extension deps. Binds 127.0.0.1
+# only; no auth (loopback is the boundary, D-23/D-25); no action tools / no egress
+# (D-2). starlette + pydantic come transitively with FastAPI. httpx is the FastAPI
+# TestClient dependency (tests only). No other new deps.
+fastapi==0.118.0
+uvicorn==0.34.3
+httpx==0.28.1
+# G-SC2: local OCR for image-only/scanned PDFs (D-15, SC-2). pytesseract is a thin
+# wrapper over the SYSTEM Tesseract binary (brew install tesseract -> tesseract 5.5.2,
+# bundles eng traineddata; NO network/model fetch at runtime). Pillow is already
+# present. Cloud/model-downloading OCR (EasyOCR/RapidOCR) is explicitly NOT used.
+pytesseract==0.3.13
+# T1 (SC-1/§8 orchestrator): DOCX text extraction. Pure-Python, no model/network.
+# Already present in the venv at 1.2.0 (no install performed this task) — pinned here
+# for reproducibility since extractors.py now imports it.
+python-docx==1.2.0
