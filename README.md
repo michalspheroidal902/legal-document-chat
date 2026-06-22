@@ -64,12 +64,11 @@ Practicing attorneys: you're welcome too — open an issue describing a real wor
 ollama pull qwen3:14b
 ollama pull bge-m3
 
-# 2a. Run locally (Python)
+# 2a. Run locally (Python) — run from inside pipeline/
 cd pipeline
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cd ..
-python -m pipeline.api
+python api.py
 #    → open http://127.0.0.1:8000/app
 ```
 

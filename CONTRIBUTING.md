@@ -33,16 +33,17 @@ Also: **synthetic / public documents only** in the repo and in tests — never c
 ollama pull qwen3:14b
 ollama pull bge-m3
 
+# Everything runs from inside pipeline/ (modules use sibling imports).
 cd pipeline
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Run the full test suite (unittest, not pytest):
-cd ..
-python -m unittest discover -s pipeline/tests
+# Run the test suite (unittest, not pytest) — from pipeline/.
+# Note: some tests need a running Ollama; they skip cleanly without it.
+python -m unittest discover -s tests
 
 # Run the app:
-python -m pipeline.api      # → http://127.0.0.1:8000/app
+python api.py      # → http://127.0.0.1:8000/app
 ```
 
 The pipeline is plain Python modules under `pipeline/` (ingest → chunk → embed → retrieve → answer → verify), a FastAPI surface in `pipeline/api.py` + `pipeline/routes_*.py`, and a vanilla-JS UI in `pipeline/static/`. `DECISIONS.md` explains the why behind the architecture.
@@ -51,7 +52,7 @@ The pipeline is plain Python modules under `pipeline/` (ingest → chunk → emb
 
 1. **Find or open an issue.** Look for [`good first issue`](../../labels/good%20first%20issue). Comment to claim it so we don't double up.
 2. **Branch** from `main`: `feat/<short-name>` or `fix/<short-name>`.
-3. **Test-first where it matters.** New behavior gets a test; anything touching parsing, retrieval, or verification *must* have one. Keep the suite green (`python -m unittest discover -s pipeline/tests`).
+3. **Test-first where it matters.** New behavior gets a test; anything touching parsing, retrieval, or verification *must* have one. Keep the suite green (`cd pipeline && python -m unittest discover -s tests`).
 4. **Keep changes surgical** and match the surrounding style.
 5. **Open a PR** describing what changed, how you verified it, and any trade-offs. Link the issue.
 
