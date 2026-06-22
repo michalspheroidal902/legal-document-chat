@@ -203,6 +203,11 @@ concurrency; no leak; baselines byte-identical; 0 non-loopback. Closeouts applie
 air-gap fix (yellow closed, 20 table tests green). **F-026 fix PROVEN** (C1: top-k×N+rerank → None→rank3)
 but baseline-affecting → **owner decision to adopt** (not self-applied). `eyecite` held `[GATE]`.
 
+**🌐 PROJECT OPEN-SOURCED (D-57, 2026-06-22):** public repo **github.com/janderswag/legal-document-chat**
+(MIT). Pre-flight audit clean (no secrets/PII/real data in tree or history); `.gitignore` hardened; public
+README/CONTRIBUTING/LICENSE + 12 topics + 5 good-first-issues; relay/governance docs kept at root → **ongoing
+commits are public.** `origin` now set.
+
 **▶ RELAY IDLE — at owner direction (2026-06-21).** Transcripts were brainstormed to a complete design but
 the **build is DEFERRED / held in reserve** (D-56): depositions already work as normal Document-Hub uploads
 (verified, page-level cites); page:line precision is built only if a real deposition proves page-level isn't

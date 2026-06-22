@@ -495,6 +495,23 @@
   (not an AI lawyer / no advice, CLAUDE.md) or the grounded-verifiable posture. Both tracked in `TASKS_M2.md`
   → Future/parked. (CE_PLAN §3/§14; CLAUDE.md hard rules; D-19, D-38, D-52)
 
+- **D-57 — Project OPEN-SOURCED as a public GitHub repo (2026-06-22).** Published to
+  **https://github.com/janderswag/legal-document-chat** (slug `legal-document-chat`, **MIT**, public).
+  **Pre-flight audit was clean:** no secrets/keys/tokens/`.env`/PII/real documents in the working tree OR
+  across all 29 commits of history (document bodies, `.lancedb*`, `.kb_catalog*`, `eval/results/` were
+  git-ignored from day one); only emails present are the GitHub noreply (commit author) + synthetic
+  `.example` addresses → **no key rotation / no history scrub needed**. `.gitignore` hardened (credential/
+  key patterns, `node_modules`, store guards). Public docs added: searchable README ("Document Parsing &
+  Chat with Open-Source Models for Attorneys"), CONTRIBUTING (recruits RAG/parsing/local-model/legal-tech
+  contributors), MIT LICENSE (+ PyMuPDF-AGPL & CUAD-CC-BY attribution notes). Description (privacy-first,
+  attorneys, local LLMs, verifiable citations) + **12 topics** set; **5 good-first-issues** created.
+  **Curation call:** dropped the third-party Manus validation PDF; **KEPT the relay/governance docs at
+  root** (revised the earlier "relocate to docs/dev/" plan — moving them mid-active-relay would break tab
+  restore; the transparent decision-record + multi-agent process is also a public-story asset). Topics
+  deliberately exclude `langchain`/`nextjs`/`llamaindex`/`openai` — not used (hand-rolled RAG, vanilla-JS
+  UI, local Ollama). Ongoing governance commits are now public by this choice. (CLAUDE.md hard rule #7;
+  D-28, D-37)
+
 ## Stack — pilot (Milestone 1)
 
 - **D-8 — Model runtime: Ollama** (pilot and production). OpenAI-compatible local API, Metal
