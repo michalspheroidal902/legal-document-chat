@@ -1,212 +1,117 @@
 # BUILDER_STATE.md — Builder handoff (pre-context-clear)
 
-_Regenerated 2026-06-20 at the **M2-8a boundary**. Snapshot of the Builder tab's state in the
-Planner→Builder→Reviewer→Tester relay. Read alongside **`RELAY.md`** (loop operating manual) and the
-canonical files it lists: `CLAUDE.md`, `RUN_STATE.md` (source of truth + "Next task"), `TASKS_M2.md`,
-`DECISIONS.md` (D-1…D-39), `eval/TEST_PLAN.md` (§3/§4 = M1 filename bar D-29; §6 = M2 page+span bar D-39)._
+_Regenerated 2026-06-21 at the **M-ENRICH-backlog boundary** (HEAD `40f02e7`). Snapshot of the Builder
+tab's state in the Planner→Builder→Reviewer→Tester relay. Read alongside **`RELAY.md`** (loop manual) and
+the canonical files it lists: `CLAUDE.md`, `RUN_STATE.md` (source of truth + "Next task" + **Audit
+canon**), `TASKS_M2.md` (→ M-ENRICH), `DECISIONS.md` (**D-1…D-55**), `eval/TEST_PLAN.md` (§6 page+span bar).
+The Builder is **IDLE at a clean between-task boundary — nothing in-flight, tree clean.**_
 
 ## 1. Current task
 
-**SAM-STYLE LOCAL UI BATCH (Tasks 1-7) COMPLETE — 7 commits 77a3b88..0e7abdb, full suite 134/134.**
-T1 app shell + 5-item left nav, local-only assets (no CDN, asserted). T2 SQLite matters catalog +
-/matters (eval allowlist moved to /eval/matters). T3 Document Hub: raw-body upload (no python-multipart
-dep), async ingest into dedicated .lancedb_kb, status table, delete STRUCTURALLY locked to documents/kb/
-(security-tested). T4 matter-scoped cited chat over .lancedb_kb + persisted threads (D-30 refusal on
-empty matter; no cross-matter leak). T5 PyMuPDF page thumbnails + cited-span highlight (read-only, never
-mutates the file). T6 local JS markdown formatter + inline source chips + Sources (escape-first XSS).
-T7 read-only Settings + "100% local · 0 outbound" badge (posture derived, not hardcoded). App left
-RUNNING on http://127.0.0.1:8000/app; browser smoke screenshotted (cited answer + yellow-highlighted
-cited span + badge). **Eval stores + M2-8 SHA-VERIFIED UNCHANGED**; KB store/catalog/bodies git-ignored;
-**0 non-loopback egress** (real samples in egress-2026-06-20-ui3/ui4/ui-smoke.log). **Zero installs.**
-Awaiting Reviewer. _(Prior batch M2/M3 gap-closure below.)_
+**NONE in progress — idle at a clean boundary.** The **M-ENRICH comprehensive backlog is COMPLETE**
+(D-55), independently Tester-confirmed **240/240** and committed (`38d12ae` feat, `40f02e7` gov). Delivered
+in one PROGRESS.md grind: **T-GRID** (review grid: `POST /grid` SSE doc×question matrix, bounded
+concurrency ≤4, reuses `clauses._classify` — not forked); **B1–B6** small wins (`answering._norm` align,
+`openapi_url=None`, compose-only README, logprob confidence display-only, **non-gating** fuzzy fallback,
+streaming-chat SSE); **C1/C2** read-only retrieval experiments; **D1** PyMuPDF form-robustness (no new
+dep). Never-false-accept held across grid/streaming/fuzzy; eval baselines byte-identical; 0 non-loopback.
 
-**M2/M3 GAP-CLOSURE BATCH (Tasks 1-7) COMPLETE — 7 commits 89c7c66..c2cc89f, full suite 99/99.**
-T1 multi-format ingest orchestrator (extractors.py + ingest_pipeline.py: DOCX/TXT, SHA-256 idempotent,
-per-file JSONL report, quarantine, ocr_failed→needs_review). T2 21-doc corpus (6 pdf/6 scan/4 docx/5
-txt-md, 4 types; sidecar eval/corpus_manifest.jsonl). T3 OCR→chunk→embed end-to-end into SEPARATE
-.lancedb_full (scan-only velez doc answerable w/ span-verified citation). T4 degraded-scan robustness +
-sparse/mixed-page routing fixes + confidence floor (make_scans.py). T5 opt-in hybrid dense+BM25 (native
-FTS; **tantivy upstream-removed/unbuildable on py3.14 — no tantivy installed**; lift neutral-negative,
-defaults off, eval/HYBRID_LIFT.md). T6 TTFT instrumentation (mean 2.77/median 3.09/p95 4.35s, <3s NOT
-met, eval/LATENCY.md; answer() unchanged). T7 deploy/ scripts + restore drill (compose-only loopback,
-live drill clean). **Live .lancedb + M2-8 artifacts SHA-VERIFIED UNCHANGED** (2766cd21…09509afe). All
-new stores in .lancedb_full/.lancedb_hyb (git-ignored). **Zero non-loopback egress** across all runs
-(egress-2026-06-20-t2…t7.log). **Zero net-new installs** (docx 1.2.0 + Pillow 12.2.0 already present).
-Awaiting Reviewer. _(Prior beat G-SC2 below.)_
+_Prior beats (all DONE + committed): **T-TBL** Docling TableFormer tables (D-53, `5a325fc`); **T-CLAUSE**
+Contract Review clause checklist (D-52, `37fa31d`); the SAM-style UI, M2/M3 gap-closure, M2-9, M2-8a all
+earlier. Milestone is now the **M-ENRICH capability workstream** (post-M2-3)._
 
-**G-SC2 is COMPLETE (per-page OCR routing for scanned PDFs — SC-2 acceptance gap closed).** The Builder
-added local-Tesseract OCR routing to ingestion: born-digital pages keep the fast PyMuPDF path (output
-byte-identical); image-only pages route through Tesseract on their correct page; empty/low-confidence
-OCR is flagged `ocr_failed` (fail-loud), never indexed as authoritative. Owner-approved install (D-15):
-`brew install tesseract` (**5.5.2**, eng traineddata, no model fetch) + `pytesseract==0.3.13` (Pillow
-already present). Built a git-ignored synthetic scanned corpus (6 image-only PDFs, 0 text-layer chars).
-Verification: all 6 route to Tesseract (mean conf ~93-95), **54/63 = 85.7%** known spans recovered on
-their correct page (every doc ≥5), 0 failed pages; born-digital fast path unchanged; fail-loud on
-blank pages; **zero network egress** (socket-guard). Tests 9/9; ingestion+chunking regression OK. **No
-re-embed of the live store / no eval re-run** (M2-8 FINAL PASS intact). Builder **idle at a clean
-between-task boundary**, awaiting the Reviewer hand-off. _(Prior beat below: M2-9 Docker Compose.)_
+## 2. Decisions made (and why) — recent (full list in `DECISIONS.md` D-1…D-55)
 
-**M2-9 is COMPLETE (Docker Compose deploy of the FastAPI service); M2-7 done, M2-8 FINAL PASS (D-40).**
-The Builder containerized the existing FastAPI pipeline as ONE service. **No new install** — Docker
-Desktop was already present (docker 29.2.0, compose v5.0.2, linux/aarch64); daemon started. **Hard-rule
-reachability gate PASSED**: a container reaches host Ollama via `host.docker.internal:11434` while
-Ollama stays bound to host `127.0.0.1` (probe returned `{"version":"0.30.10"}`) — **no rebind, no
-OLLAMA_HOST, no 0.0.0.0**. App made Ollama-URL env-configurable (`LDI_OLLAMA_URL`, default
-`127.0.0.1:11434`; container sets `host.docker.internal`) via one resolver `embed_store.ollama_url()`
-used by both `_chat` + `embed_texts`. Lean image (python:3.12-slim pinned by digest; serving deps only
-— fastapi/uvicorn/lancedb, **no docling/pymupdf/Torch**; reranker OFF+lazy). Compose publishes
-**`127.0.0.1:8000:8000` only**, mounts the LanceDB store **read-only** (D-28: never baked in),
-extra_hosts host-gateway. Monitored smoke: `/health` + `/answer` (F-004) over loopback **byte-identical
-parity with host `answer()`** (answer_text + chunk-derived p2 citation + empty rejected_claims), **0
-non-loopback egress**, image fs carries **no docs/store/secrets**, host Ollama bind unchanged, clean
-`compose down`. No task is mid-edit; Builder **idle at a clean between-task boundary**, awaiting the
-Reviewer hand-off. _(Prior beats: M2-7 loopback API; M2-8a fix → M2-8 FINAL PASS 62/63, D-40.)_
-
-**Next task = M2-8a (queued, NOT started):** a small verifier-normalization fix to convert the
-conditional pass into a FINAL page+span PASS (≥95%):
-- `html.unescape` the model's cited span before the overlap check (recovers **F-016**, whose span
-  carried `&quot;` HTML entities),
-- strip stray backslash-escapes from the span (recovers **F-014**, `\"Landlord\"`),
-- credit **F-042** as a valid alternate-page citation (the judge is named verbatim on the cited page 2
-  as well as the manifest's page 1 — a multi-page fact, not a fabrication).
-Then **M2-7** (FastAPI loopback HTTP surface, D-13), after which the M2 milestone wraps.
-
-## 2. Decisions made (and why)
-
-Recorded in `DECISIONS.md`; the M2 build/scoring calls, summarized:
-
-- **D-34 — Vector store = LanceDB (embedded, pip-only).** No Docker/server; chosen over Qdrant for the
-  single-tenant M2 build. Store is git-ignored (contains document text).
-- **D-35 — Matter-scoping = explicit `matter` param + hard pre-filter BEFORE similarity.** Never infer
-  the matter from the question (inference is the exact DRM failure). Absent matter = explicit search-all.
-- **D-36 — Reranker (`bge-reranker-v2-m3`) runs LOCAL in-process (transformers+Torch), NOT Ollama**
-  (Ollama can't serve cross-encoders). Measured **neutral lift** on this 6-doc corpus → **OFF by
-  default** (`rerank=False`); kept behind a flag for production scale.
-- **D-37 — Answering is hand-rolled; LlamaIndex dropped.** A thin retrieve→assemble→qwen3→parse
-  function, for full transparency of the claim→chunk→offset citation path M2-6 needs.
-- **D-38 — Displayed citations are CHUNK-DERIVED, never model-asserted.** Filename+page come from the
-  matched chunk's metadata; the model's prose is only a pointer. (Fixed the M2-5 `_parse_citations`
-  bug; precondition of M2-6.)
-- **D-39 — M2-8 scores at the stricter page+span bar** (re-instating CE_PLAN §2/§11 that D-29 relaxed
-  for the turnkey stack): present-fact citation = conveys fact AND chunk-derived `filename_match` AND
-  `page_match` AND the span **mechanically verifies** (survives `verify_answer`). **Displayed
-  fabrications = hard-zero.**
-- **Normalization contract (M2-1/M2-2/M2-6):** collapse whitespace, `-\n`→`-` (keep the hyphen), drop
-  quote chars, lowercase — applied to BOTH span and chunk text so PDF reflow never false-rejects.
-  (M2-8a extends this with `html.unescape` + backslash-strip.)
-- **D-31 — Air-gap = egress-MONITORED, not disconnected** (networking on; `lsof`/`nettop` prove zero
-  non-loopback). **D-28 — document bodies + derived stores (`pipeline/.lancedb/`, chunks,
-  `eval/results/`) are git-ignored**, never committed.
+- **D-49/D-51 — OSS-evaluation roadmap** (9 repos deep-dived + an independent Tester cross-eval): adopt
+  Docling tables, the review grid, clause extraction, small wins; **our mechanical span verifier is the
+  moat — never replace it with anyone's soft/fuzzy attribution.** Skip cloud/GraphRAG/server stores.
+- **D-50/D-53 — Tables:** Docling TableFormer; **one Markdown table per chunk with SELF-RELATIVE offsets**
+  (`[TABLE]` tag); **offset-routing — NEVER mix PyMuPDF and Docling offsets on one chunk**; prose keeps the
+  PyMuPDF path byte-identical; `has_tables` gates the heavy Docling pass. `TABLEFORMER_REVISION` pinned +
+  now code-enforced (fail-loud on mismatch).
+- **D-52 — Clause checklist:** `extract_clauses(matter, doc_id?)` → 3-status (found = span-verified only /
+  potentially_missing / not_confirmed); reuse, don't fork, the verifier.
+- **D-54 — Builder protocol:** comprehensive PROGRESS.md grind, no stubs, "going slow OK," BUT a **`[GATE]`
+  HARD-STOP** for new install/dep/model-fetch, real data, hardware, non-loopback bind, weakening the
+  verifier, or re-indexing/re-running the eval baseline. Keep grinding all other tasks.
+- **D-55 — F-026 fix PROVEN but GATED:** C1 measured top-k×N(20)+rerank recovers F-026 (None→rank3), but
+  it's baseline-affecting → **owner decision to adopt**, NOT self-applied (`rerank=False` stays, D-36).
+  **Audit canon re-pinned** to CWD-stable hashes via `scripts/baseline_hash.sh`.
+- **Standing (unchanged): D-34** LanceDB embedded · **D-35** matter pre-filter-before-similarity · **D-36**
+  reranker OFF by default · **D-37** hand-rolled answering (no LlamaIndex) · **D-38** chunk-derived
+  citations · **D-39** page+span bar · **D-31** egress-monitored air-gap · **D-28** bodies/stores git-ignored.
 
 ## 3. In-flight work
 
-**None half-finished. G-SC2 CODE COMPLETE (test-first), awaiting Reviewer→Tester→Planner.** Done this
-turn — `ingestion.py`: `extract_pages` UNCHANGED (born-digital, 3 keys); added `extract_pages_ocr`
-(per-page text-vs-image routing → born-digital=PyMuPDF byte-identical, image-only=local Tesseract on
-correct page; records carry `source`/`ocr_failed`/`ocr_confidence`/`flag_reason` on top of the core
-3 keys) + helpers `_ocr_page` (single-pass image_to_data → text+confidence) + `_ocr_verdict` (fail-loud:
-empty or conf<50 → flagged, page_text blanked). New `build_scanned_corpus.py` (`rasterize_to_image_pdf`
-→ git-ignored `documents/synthetic_corpus/scanned/`, 6 image-only PDFs built). New
-`tests/test_ocr_ingestion.py` (9 tests, RED→GREEN): OCR recovers ≥5 known spans, page-boundary integrity
-(unique p1 span on p1, not elsewhere), born-digital unchanged, fail-loud (verdict unit + blank-page
-integration), zero-egress socket-guard. `requirements.txt` records `pytesseract==0.3.13` (system
-tesseract 5.5.2 via brew). Regression: test_ingestion + test_chunking OK. **Did NOT**: re-embed
-`pipeline/.lancedb` or re-run the 72 (M2-8 FINAL PASS intact), touch answering/verifier/UI/model pins,
-build G-SC1 breadth, or use cloud/model-fetch OCR. _(Prior beat M2-9, below — new (all committable, no
-data): `Dockerfile` (repo root; python:3.12-slim pinned by digest
-`sha256:76d4b7b6…dba74bf`; installs `requirements-serve.txt`; copies `pipeline/*.py`; CMD uvicorn
-`--host 0.0.0.0` INSIDE the container only), `docker-compose.yml` (one service, `ports:
-["127.0.0.1:8000:8000"]`, `LDI_OLLAMA_URL=http://host.docker.internal:11434`, `extra_hosts host-
-gateway`, LanceDB store mounted `:ro`), `.dockerignore` (excludes documents/, pipeline/.lancedb/,
-.env*, eval/results/, .venv/, __pycache__, .git, tests/), `pipeline/requirements-serve.txt`
-(fastapi/uvicorn/lancedb only). Modified: `embed_store.py` (+`ollama_url()` resolver, `embed_texts`
-host default→resolver) + `answering.py` (`_chat` host default→resolver, `from embed_store import
-ollama_url`) — env-configurable Ollama URL, default unchanged. New test `tests/test_ollama_url.py`
-(5 tests, RED→GREEN). **Regression 25/25** (test_ollama_url 5 + test_api 9 + test_verifier 11). Live:
-`docker compose build` (lean, ~8s, no Torch) → `up` → monitored smoke (`/health` + `/answer` F-004
-over 127.0.0.1:8000) → **byte-identical parity with host answer()** → `down` clean. Egress monitor →
-git-ignored `eval/results/egress-2026-06-20-m2-9.log` (0 non-loopback). Image-fs scan: no
-docs/.lancedb/.env/eval-results. `docker compose config` has no 0.0.0.0. Host Ollama bind unchanged,
-OLLAMA_HOST unset, before+after. **Did NOT**: containerize Ollama, change its bind, set OLLAMA_HOST,
-bind 0.0.0.0, add Qdrant/LlamaIndex/UI, enable reranker, re-run the 72, or install anything (Docker
-already present). **Carry-forward still open:** the M2-7-noted optional `answering._norm` html.unescape
-alignment (precision-only; needs a targeted re-run; not touched here).
+**NONE.** No task is mid-edit; working tree is **clean** (verified). Everything from T-CLAUSE/T-TBL/
+M-ENRICH is committed. `PROGRESS.md` (the backlog checklist) is committed as a historical record. The
+two `[GATE]`/deferred items are recorded, not started: `eyecite` (new pip dep, owner-gated) and the
+F-026-adopt decision (baseline-affecting, owner-gated).
 
 ## 4. Next 3 steps (immediately after resume)
 
-1. **Await the Reviewer's audit** of the M2-8 grading (sample of present-fact `citation_accurate_M2`,
-   all 9 NF, the 0-displayed-fabrications claim, F-042/F-016 rulings) and the Tester's independent
-   ~10-question repro.
-2. **Execute M2-8a** when the Planner gates it: add `html.unescape` + backslash-strip to the verifier's
-   span normalization (test-first: F-016/F-014-style synthetic spans must verify; the fabricated/
-   mis-paged true-negatives must STILL be rejected — the verifier must never false-accept), credit
-   F-042, re-run the 72-question set, confirm ≥95% page+span + still 0 displayed fabrications.
-3. **Then M2-7** (FastAPI loopback-only HTTP surface, D-13) — owner-gated install (FastAPI/uvicorn).
+1. **Do NOT auto-start anything.** The next task — **T-TRANS (transcripts: page:line citation + Q/A-aware
+   chunking)** — is **BRAINSTORM-FIRST**: page:line reshapes the verifier + UI, so the Planner runs a
+   design brainstorm with the owner BEFORE writing the Builder prompt. Await that comprehensive prompt.
+2. When the Planner emits the T-TRANS prompt (or an owner-greenlit decision: **adopt F-026 fix** /
+   **approve `eyecite`** / **OcrMac/MPS**), execute it test-first per the D-54 protocol.
+3. On any new install/dep/model-fetch/baseline-reindex → **`[GATE]` HARD-STOP**, surface to the Planner.
 
 ## 5. Key constraints (must be respected — see `RELAY.md` "Standing constraints")
 
-- **Local-only, loopback-only.** System Ollama `127.0.0.1:11434` (NOT AnythingLLM's bundled engine);
-  never bind `0.0.0.0`; never set `OLLAMA_HOST`.
-- **Synthetic/public docs only. No real attorney/client data** (real data = M6, onsite, written approval).
-- **Installs are owner-gated, one step at a time** via the relay prompt. Current venv deps (pinned):
-  `pymupdf==1.27.2.3`, `docling==2.104.0`, `lancedb==0.33.0` (+ transformers/Torch from docling). HF
-  models (Docling layout, `bge-reranker-v2-m3`) live in `~/.cache/huggingface`, fetched once then OFFLINE.
-- **D-11 pins:** `qwen3:14b=bdbd181c33f2`, `bge-m3=790764642607`, reranker
-  `RERANKER_REVISION=953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e`. A change forces re-index/re-eval.
-  **Reranker OFF by default** (D-36).
-- **Verifier fails CONSERVATIVELY** — a false-reject of a truthful span is a precision bug; it must
-  **never false-accept a fabrication**. Any M2-8a normalization loosening must preserve this.
-- **Manual eval grading only** — no auto-scorer (TEST_PLAN §3/§5). Objective citation lookups are
-  reading aids, not a pass/fail emitter.
-- **Air-gap = egress-monitored** (D-31). **Git-ignored (D-28):** `documents/`, `pipeline/.lancedb/`,
-  chunk data, `eval/results/`; never commit a body or secret.
+- **Local-only, loopback-only.** System Ollama `127.0.0.1:11434`; never bind `0.0.0.0`; never set
+  `OLLAMA_HOST`. **Synthetic/public docs only — no real attorney/client data** (real = M6, written approval).
+- **`[GATE]` HARD-STOP (D-54):** no new install/dep/model-fetch, real data, hardware, non-loopback bind,
+  verifier-weakening, or baseline re-index/M2-8 re-run without surfacing to the Planner first.
+- **Verifier fails CONSERVATIVELY — never false-accept a fabrication** (D-19/D-38). The fuzzy fallback
+  (B5) is **non-gating**: "probable/unverified" UI only, NEVER enters the verified set.
+- **Baselines byte-identical:** verify with the canonical **`scripts/baseline_hash.sh`** (CWD-independent).
+  Pinned: `.lancedb=537146cf…`, `.lancedb_full=d329c91e…`, `.lancedb_hyb=07f04972…` (supersedes the old
+  path-sensitive `13b242de…` set). Experiments run on scratch/KB stores only.
+- **Egress = PID-scoped** (`lsof -a -p PID -iTCP`), 0 non-loopback, real samples in the audit-canon log
+  format. A system-wide sample is not pipeline proof.
+- **Installs owner-gated.** **No net-new installs this cycle.** Current venv deps (pinned): `pymupdf
+  ==1.27.2.3`, `docling==2.104.0`, `lancedb==0.33.0`, `fastapi==0.118.0`, `uvicorn==0.34.3`, `httpx
+  ==0.28.1`, `pytesseract==0.3.13`, `python-docx==1.2.0` (+ transformers/Torch from docling/reranker).
+  **NOT installed (gated/avoided):** `eyecite` (`[GATE]`), `pdfplumber` (D1 reimplemented on PyMuPDF).
+- **D-11 pins (a change forces re-index/re-eval):** `qwen3:14b=bdbd181c33f2`, `bge-m3=790764642607`,
+  reranker `RERANKER_REVISION=953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e` (OFF by default, D-36),
+  `TABLEFORMER_REVISION=fc0f2d45e2218ea24bce5045f58a389aed16dc23` (code-enforced). HF models live in
+  `~/.cache/huggingface`, fetched once then OFFLINE (table_extract sets HF/Transformers offline at import).
+- **Manual eval grading only** (no auto-scorer, TEST_PLAN §3/§5). **Git-ignored (D-28):** `documents/`,
+  `pipeline/.lancedb*`, `pipeline/.kb_catalog.db`, chunk data, `eval/results/`; never commit a body/secret.
 
 ## 6. File map
 
-**Tracked governance/eval (committable):**
-- `RELAY.md` — 4-tab loop operating manual (read first after any clear).
-- `CLAUDE.md`, `CE_PLAN.md`, `README.md` — governance + plan (milestone now 2-3).
-- `RUN_STATE.md` — source of truth: status + **"Next task" = M2-8a** + completed log + carry-forward.
-- `TASKS_M2.md` — M2 checklist (M2-1…M2-6, M2-8 done; M2-8a/M2-7 next). `TASKS.md` = M1 (historical, PASSED).
-- `DECISIONS.md` — locked decisions **D-1…D-39**.
-- `eval/TEST_PLAN.md` — rubric (§3/§4 M1 filename bar; **§6 M2 page+span bar**).
-- `eval/golden_manifest.jsonl` (72: 63 present + 9 NF; DRM pair F-009/F-025), `eval/golden_questions.jsonl`.
-- `PLANNER_STATE.md`, `BUILDER_STATE.md` (this file).
+**Tracked governance/eval (committable):** `RELAY.md`, `CLAUDE.md`, `CE_PLAN.md`, `README.md`,
+`RUN_STATE.md` (+ Audit canon), `TASKS_M2.md` (→ M-ENRICH), `DECISIONS.md` (D-1…D-55), `PLANNER_STATE.md`,
+`BUILDER_STATE.md` (this file), `PROGRESS.md` (last backlog run), `eval/TEST_PLAN.md`,
+`eval/golden_manifest.jsonl` (72), `eval/golden_questions.jsonl`, `docs/research/2026-06-21-oss-evaluation.md`,
+`docs/experiments/2026-06-21-retrieval-experiments.md`, `deploy/` (compose + README), `scripts/baseline_hash.sh`.
 
 **Pipeline code (`pipeline/`, committable — code/tests only, no bodies):**
-- `ingestion.py` (M2-1 PyMuPDF per-page text + 1-based pages) · `chunking.py` (M2-2 Docling structure +
-  page/section-aware chunks + deterministic SAC) · `embed_store.py` (M2-3 bge-m3 1024-d → LanceDB) ·
-  `retrieval.py` (M2-4 matter pre-filter-before-similarity; `rerank` flag) · `reranker.py` (M2-4b local
-  cross-encoder, OFF by default) · `answering.py` (M2-5 §10 grounded answer + D-38 chunk-derived
-  resolution) · `verifier.py` (M2-6 mechanical span overlap + reject; **M2-8a edits land here**) ·
-  `run_m28.py` (M2-8 run harness — loop, not a scorer) · `tests/test_*.py` (per stage; TDD) ·
-  `requirements.txt`, `README.md`, `.gitignore`.
+- Core RAG: `ingestion.py` · `chunking.py` · `embed_store.py` · `retrieval.py` · `reranker.py` (OFF) ·
+  `answering.py` · `verifier.py` · `catalog.py` · `extractors.py` · `ingest_pipeline.py` · `kb_ingest.py`.
+- M-ENRICH: `clauses.py` + `routes_clauses.py` + `data/clause_taxonomy.json` (T-CLAUSE) · `table_extract.py`
+  + `table_ingest.py` + `build_table_corpus.py` (T-TBL) · `grid.py` + `routes_grid.py` (T-GRID) ·
+  `fuzzy_fallback.py` (B5) · `kb_maintenance.py` (A0b prune) · `pdf_forms.py` + `build_form_corpus.py` (D1).
+- API/UI: `api.py` (mounts routes; `openapi_url=None`) · `routes_chat.py` (+ streaming) · `routes_kb.py` ·
+  `routes_matters.py` · `routes_settings.py` · `pdf_view.py` · `static/{app.html,app.css,app.js}` (SAM-style
+  UI incl. the grid page + Contract Review panel).
+- Experiments (committable): `experiments/exp_c1_topk_rerank.py`, `experiments/exp_c2_sentence_window.py`.
+- Harnesses: `run_m28.py`, `run_m28a_rerun.py`, `run_hybrid_eval.py`, `run_latency.py`, `make_scans.py`,
+  `build_scanned_corpus.py`, `build_full_store.py`. `tests/test_*.py` (per stage; TDD; 240 total).
 
-**Git-ignored artifacts (NEVER committed, D-28):**
-- `pipeline/.venv/`, `pipeline/.lancedb/` (vectors+text), `documents/synthetic_corpus/{pdf,chunks}/`
-  (bodies + chunk data + Docling header cache).
-- `eval/results/run-2026-06-20-m2.jsonl` (72 raw M2 results), `egress-2026-06-20-m2.log` (16,148
-  samples, 0 non-loopback), `grades-2026-06-20-m2.md` (manual grading record).
+**Git-ignored artifacts (NEVER committed, D-28):** `pipeline/.venv/`, `pipeline/.lancedb/` (eval baseline)
++ `.lancedb_full/` + `.lancedb_hyb/` + `.lancedb_kb/` (KB scratch) + `.kb_catalog.db`,
+`documents/` (bodies + scanned + kb), `eval/results/` (raw runs + egress logs + grades).
 
 ## 7. Blockers / flags (to escalate to Reviewer / Tester / owner)
 
-- **🟢 M2-8 keystone PROVEN:** M1 produced ZERO verifiable page+span citations; M2 produced **59/63
-  fully chunk-derived, span-verified page+span citations**, **0 displayed fabrications**, **NF 9/9 =
-  100%**, **DRM 2/2 = 100%**, latency mean 6.9s/median 7.0s/max 17.5s, 2 rejected_claims (safety
-  working). Egress: zero non-loopback over 16,148 samples (SC-6).
-- **🟡 Page+span accuracy = 93.7% strict (< 95% gate) → CONDITIONAL pass.** Four non-fabrication misses:
-  - **F-016** — model emitted `&quot;` HTML entities in its span → no overlap → rejected. **Fixable**
-    via `html.unescape` (M2-8a).
-  - **F-014** — model span had backslash-escaped/non-contiguous quotes (`\"Landlord\"`) → rejected.
-    Targeted by M2-8a backslash-strip.
-  - **F-042** — judge named on BOTH manifest page 1 AND the cited page 2; chunk-derived page 2 ≠ 1 →
-    strict `page_match` miss, but a **truthful verified** citation (multi-page fact). M2-8a credits it.
-  - **F-026** — GENUINE miss: retrieval surfaced only the page-3 occurrence of counsel (not the page-1
-    caption) and the model falsely refused. **Not** fixed by M2-8a; revisit via reranker/top_k or a
-    chunking tweak later, not a blocker for the page+span PASS.
-  After M2-8a: expected **≥96.8%** (≥95% gate) with 0 displayed fabrications retained.
-- **🟡 Conservative-verifier invariant (for the Reviewer of M2-8a):** the html.unescape/backslash-strip
-  loosening must recover F-014/F-016 WITHOUT enabling any false-accept — the fabricated + mis-paged
-  true-negative tests must stay red→rejected.
-- **🟡 Reranker neutral lift** on the 6-doc corpus (D-36) — stays OFF; re-evaluate at production scale.
-- **🟡 Latency** (informational): mean ~6.9s/question (no §6 gate); instrument first-token before the M4 demo.
+- **🟢 No reds.** 240/240; never-false-accept intact; baselines byte-identical; 0 non-loopback.
+- **🟡 G-LAT `<3s` first-token latency (~3.6s)** — the one open §2/M3 quantitative yellow; hardware-
+  hypothesis (D-22), unproven. NOT a defect. (Builder cannot resolve — hardware/model lever, held out.)
+- **🟡 F-026 fix PROVEN but un-adopted** (C1) — turning on top-k×N+rerank is baseline-affecting → **owner
+  decision**, not a Builder default. `eyecite` install is `[GATE]` (owner approval).
+- **Owner-gated, OUT of Builder scope:** T-TRANS is brainstorm-first; M4 UAT/`/app` screenshot; M4-5
+  hardware; M6 real data. Do not start these from the Builder tab.
