@@ -296,26 +296,30 @@
   function renderChat() {
     var inner = document.querySelector("#view-chat .view-inner");
     inner.innerHTML =
-      "<h1>New Chat</h1>" +
-      "<div class='panel' style='display:flex;gap:8px;align-items:center'>" +
-      "<label class='muted'>Matter:</label>" +
-      "<select class='matter-picker' id='chat-matter' style='max-width:340px'></select>" +
-      "<button class='btn secondary' id='chat-new'>New chat</button></div>" +
+      "<div class='chat-head'>" +
+      "<span class='field-label'>Matter</span>" +
+      "<select class='matter-picker' id='chat-matter'></select>" +
+      "<button class='btn secondary' id='chat-new'>＋ New chat</button>" +
+      "</div>" +
       "<div id='chat-messages' class='chat-messages'></div>" +
-      "<div class='panel chat-inputrow'><textarea id='chat-input' rows='2' " +
-      "placeholder='Ask a question grounded in this matter&#39;s documents…'></textarea>" +
-      "<button class='btn' id='chat-send'>Send</button></div>";
+      "<div class='chat-composer-wrap'>" +
+      "<div class='chat-greeting'><h1>What would you like to ask?</h1>" +
+      "<p class='greet-sub'>Answers are grounded in the selected matter&#39;s documents and cited to the exact page and span.</p></div>" +
+      "<div class='chat-composer'>" +
+      "<textarea id='chat-input' rows='1' placeholder='Ask anything about this matter&#39;s documents…'></textarea>" +
+      "<button class='btn' id='chat-send'>Ask&nbsp;→</button>" +
+      "</div></div>";
     fillMatterPickers().catch(function () {});
     document.getElementById("chat-matter").addEventListener("change", function (e) {
       var opt = e.target.selectedOptions[0];
       setActiveMatter(e.target.value, opt ? opt.textContent : null);
     });
     document.getElementById("chat-new").addEventListener("click", function () {
-      state.threadId = null; document.getElementById("chat-messages").innerHTML = "";
+      state.threadId = null; renderChat();
     });
     document.getElementById("chat-send").addEventListener("click", sendChat);
     document.getElementById("chat-input").addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) sendChat();
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); }
     });
   }
   window.viewHooks.chat = renderChat;
